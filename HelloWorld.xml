@@ -1,5 +1,16 @@
-<?xmlversion="1.0" encoding="UTF-8"?>
-<Module>
-    <ModulePrefs title="Hello World Example" />
-            <Content type="html"><![CDATA[Hello, World!]]></Content>
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module> 
+  <ModulePrefs title="Hello World!">
+    <Require feature="views" />
+  </ModulePrefs>
+  <Content type="html" view="home">
+    <![CDATA[
+      Hello, small world!
+    ]]>  
+  </Content>
+  <Content type="html" view="canvas"> 
+    <![CDATA[
+      Hello, big world!
+    ]]> 
+  </Content>
 </Module>
