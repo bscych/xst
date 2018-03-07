@@ -1,0 +1,5 @@
+<?xmlversion="1.0" encoding="UTF-8"?>
+<Module>
+    <ModulePrefs title="Hello World Example" />
+            <Content type="html"><![CDATA[Hello, World!]]></Content>
+</Module>
