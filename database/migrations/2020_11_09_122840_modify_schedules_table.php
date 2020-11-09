@@ -14,7 +14,7 @@ class ModifySchedulesTable extends Migration
     public function up()
     {
         Schema::table('schedules', function (Blueprint $table) {
-//            $table->rename('classmodel_id','school_id');           
+            $table->rename('classmodel_id','school_id');           
         });
     }
 
