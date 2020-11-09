@@ -18,7 +18,8 @@
                             @foreach($calendar as $date)                          
                             <tr>                           
                                 <td class="center">
-                                    <a class="btn btn-primary {{data_get($date,'submittable')?'':'disabled'}}" href="{{route('schedule.create',['date'=>data_get($date,'date')])}}">周{{ \Illuminate\Support\Carbon::make(data_get($date,'date'))->dayOfWeek===0?'日':\Illuminate\Support\Carbon::make(data_get($date,'date'))->dayOfWeek}}({{data_get($date,'date')}}) </a>
+                                    @php $theDate = data_get($date,config()->get('constants.DATE_STRING_KEY')) @endphp
+                                    <a class="btn btn-primary {{data_get($date,config()->get('constants.SUBMITTABLE_STRING_KEY'))?'':'disabled'}}" href="{{route('schedule.create',['date'=>$theDate])}}">周{{ \Illuminate\Support\Carbon::make($theDate)->dayOfWeek===0?'日':\Illuminate\Support\Carbon::make($theDate)->dayOfWeek}}({{$theDate}}) </a>
                                 </td>
                             </tr>                          
                             @endforeach

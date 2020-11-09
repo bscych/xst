@@ -18,7 +18,7 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">名字</th>
-                                <th scope="col">电子邮邮箱</th> 
+                                <!--th scope="col">电子邮邮箱</th--> 
                                 <th scope="col">权限</th> 
                                 <th scope="col">操作</th>
                             </tr>
@@ -27,9 +27,9 @@
                             @foreach($users as $usr)
                             @if(Auth::user()->can('view', $usr))
                             <tr>
-                                <th scope="row">{{$usr->id}}</th>
+                                <th scope="row">{{$loop->index+1}}</th>
                                 <td>{{$usr->name}}</td>
-                                <td>{{$usr->email}}</td>
+                                <!--td>{{$usr->email}}</td-->
                                 <td>{{$usr->roles->count()===0?'':$usr->roles->first()->label_name}}</td>
                                 <td>
                                     <a class="btn btn-info btn-sm" href="{{ URL::to('user/' . $usr->id . '/edit') }}"> 编辑</a>
@@ -40,7 +40,7 @@
                             @endforeach
                         </tbody>
                     </table>
-
+                     <div>{{ $users->links() }}</div>
                 </div>
             </div>
         </div>

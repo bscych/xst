@@ -20,7 +20,7 @@
                         <tbody>
                             @foreach ($course->students as $model)
                             <tr>
-                                <td>{{$model->id}} </td>
+                                <td>{{$loop->index+1}} </td>
                                 <td>{{$model->name}}</td>
                                 <td>{{$model->gender}}</td>                               
                                 @if( $model->pivot->classmodel_id ===null)

@@ -30,9 +30,9 @@
 
                             <div class="col-md-6">
                                 <select id="gender" class="form-control @error('gender') is-invalid @enderror" name="gender" value="{{ old('gender') }}">
-                                <option value="男">男</option>
-                                <option value="女">女</option>
-                            </select>
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
                                 @error('gender')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -41,8 +41,43 @@
                             </div>
                         </div>
 
+                      
+
                         <div class="form-group row">
-                            <label for="birthday" class="col-md-4 col-form-label text-md-right">{{ __('生日') }}</label>
+                            <label for="name" class="col-md-4 col-form-label text-md-right">就读学校(必填)</label>
+
+                            <div class="col-md-6">
+                                <select class="form-control" name="constant_school_id">
+                                    @foreach($schools as $school)
+                                    <option value="{{$school->id}}">{{$school->label_name}}</option>                                          
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="unit_price" class="col-md-4 col-form-label text-md-right">年级(必填)</label>
+
+                            <div class="col-md-6">                               
+                                <select class="form-control" name="grade">
+                                    @for ($i = 1; $i < 10; $i++)
+                                    <option value="{{$i}}">{{$i}}</option> 
+                                    @endfor                                         
+                                </select>  
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="unit" class="col-md-4 col-form-label text-md-right">班级(必填)</label>
+
+                            <div class="col-md-6">
+                                <select class="form-control" name="class_room">
+                                    @for ($i = 1; $i < 18; $i++)
+                                    <option value="{{$i}}">{{$i}}</option> 
+                                    @endfor                                         
+                                </select>   
+                            </div>
+                        </div>
+                          <div class="form-group row">
+                            <label for="birthday" class="col-md-4 col-form-label text-md-right">{{ __('生日(必填)') }}</label>
 
                             <div class="col-md-6">
                                 <input id="birthday" type="date" class="form-control @error('birthday') is-invalid @enderror" name="birthday" >
@@ -83,7 +118,7 @@
                                 <input id="live_brief" type="text" class="form-control" name="live_brief">
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">

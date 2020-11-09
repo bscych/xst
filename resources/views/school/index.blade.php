@@ -35,7 +35,7 @@
                                     <a href="{{route('school.index',['school_id'=>$school->id])}}" class="btn btn-primary btn-sm">{{ __('分校') }}</a>
                                     @endif
                                     <a href="#" class="btn btn-primary btn-sm">{{ __('删除') }}</a>
-                                    <a href="#" class="btn btn-primary btn-sm">{{ __('编辑') }}</a>
+                                    @can('update',$school)<a href="{{route('school.edit',$school)}}" class="btn btn-primary btn-sm">{{ __('编辑') }}</a>@endcan
                                 </td>
                             </tr>
                             @endif

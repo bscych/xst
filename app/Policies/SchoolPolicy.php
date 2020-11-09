@@ -19,7 +19,7 @@ class SchoolPolicy {
      */
     public function viewAny(User $user) {
      
-        return true;
+        return $user->id===1;
     }
 
     /**
@@ -42,6 +42,9 @@ class SchoolPolicy {
            
         }
     }
+    
+    
+
 
     /**
      * Determine whether the user can create schools.
@@ -61,7 +64,8 @@ class SchoolPolicy {
      * @return mixed
      */
     public function update(User $user, School $school) {
-        //
+
+       return session()->get('school_id')===$school->id;
     }
 
     /**
@@ -83,7 +87,9 @@ class SchoolPolicy {
      * @return mixed
      */
     public function restore(User $user, School $school) {
-        //
+        $user_id = $user->id;
+        $school_id = $school->id;
+        return true;
     }
 
     /**

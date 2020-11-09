@@ -11,7 +11,7 @@
         @auth
         <x-displayer/>@
         @endauth
-        {{ config('app.name', 'XST') }}
+        {{ config('app.name', '小书童') }}
     
     </title>
     
@@ -25,6 +25,7 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link rel="icon" href="{{asset('/imgs/logo20.png')}}"  mce_href="{{asset('/imgs/logo20.png')}}" type="image/x-icon">
 </head>
 <body>
     <div id="app">

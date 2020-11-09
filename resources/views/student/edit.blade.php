@@ -1,27 +1,161 @@
-@extends('layouts.wechat')
+@extends('layouts.app')
 
 @section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">{{ __('新增学生') }}</div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ route('student.update',$student) }}">
+                        @method('PUT')
+                        @csrf
+                        <div class="form-group row">
+                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('姓名（必填）') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ $student->name }}" required autocomplete="name" autofocus>
+
+                                @error('name')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="gender" class="col-md-4 col-form-label text-md-right">{{ __('性别（必填）') }}</label>
+
+                            <div class="col-md-6">
+                                <select id="gender" class="form-control @error('gender') is-invalid @enderror" name="gender" value="{{ $student->gender }}">
+                                    <option value="男" {{$student->gender==='男'?'selected':''}} >男</option>
+                                    <option value="女" {{$student->gender==='女'?'selected':''}}>女</option>
+                                </select>
+                                @error('gender')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                      
+
+                        <div class="form-group row">
+                            <label for="name" class="col-md-4 col-form-label text-md-right">就读学校(必填)</label>
+
+                            <div class="col-md-6">
+                                <select class="form-control" name="constant_school_id">
+                                    @foreach($schools as $school)
+                                    <option value="{{$school->id}}" {{$school->id.''===$student->school?'selected':' '}} >{{$school->label_name}}</option>                                          
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="unit_price" class="col-md-4 col-form-label text-md-right">年级(必填)</label>
+
+                            <div class="col-md-6">                               
+                                <select class="form-control" name="grade">
+                                    @for ($i = 1; $i < 10; $i++)
+                                    <option value="{{$i}}" {{$i===$student->grade?'selected':''}}>{{$i}}</option> 
+                                    @endfor                                         
+                                </select>  
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="unit" class="col-md-4 col-form-label text-md-right">班级(必填)</label>
+
+                            <div class="col-md-6">
+                                <select class="form-control" name="class_room">
+                                    @for ($i = 1; $i < 18; $i++)
+                                    <option value="{{$i}}" {{$i===$student->class_room?'selected':''}}>{{$i}}</option> 
+                                    @endfor                                         
+                                </select>   
+                            </div>
+                        </div>
+                          <div class="form-group row">
+                            <label for="birthday" class="col-md-4 col-form-label text-md-right">{{ __('生日(必填)') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="birthday" type="date" class="form-control @error('birthday') is-invalid @enderror" name="birthday"  value="{{$student->birthday}}">
+
+                                @error('birthday')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="nation" class="col-md-4 col-form-label text-md-right">{{ __('民族') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="nation" type="text" class="form-control" name="nation" value="{{$student->nation}}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="parents_info" class="col-md-4 col-form-label text-md-right">{{ __('父母信息（姓名、电话）') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="parents_info" type="text" class="form-control" name="parents_info" value="{{$student->parents_info}}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="home_address" class="col-md-4 col-form-label text-md-right">{{ __('家庭住址') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="home_address" type="text" class="form-control" name="home_address" value="{{$student->home_address}}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="live_brief" class="col-md-4 col-form-label text-md-right">{{ __('生活简介,食物禁忌，性格特点') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="live_brief" type="text" class="form-control" name="live_brief" value="{{$student->live_brief}}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-0">
+                            <div class="col-md-6 offset-md-4">
+                                <button type="submit" class="btn btn-primary">
+                                    {{ __('提交') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--
 
 <div class="row">
     <div class="box col-md-12">
         <div class="box-inner">
             <div class="box-header well" data-original-title="">
-                <h2><i class=""></i> 编辑学生信息</h2>
+                <h2><i class=""></i> 新增学生</h2>
             </div>
             <div class="box-content">
-                <form role="form" method="POST" action="{{ url('/student/'.$student->id) }}">
-                    @method('PUT')
+                <form role="form" method="POST" action="{{ url('/student') }}">
+
                     @csrf
                     <div class="row">
                         <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">姓名 ： </label>
-                            <input type="text" class="form-control" name="name" value="{{$student->name}}">   
+                            <input type="text" class="form-control" name="name" value="{{ old('name') }}" placeholder="{{$errors->first('name')}}">   
 
                         </div>
                         <div class="form-group{{ $errors->has('gender') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">性别 ： </label>
                             <select class="form-control" name="gender" >
-                                <option value="男"  >男</option>
+                                <option value="男">男</option>
                                 <option value="女">女</option>
                             </select>
                         </div>
@@ -29,12 +163,12 @@
 
                         <div id="datetimepicker" class="input-append date form-group{{ $errors->has('birthday') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">生日 ： </label>
-                            <input type="date" class="form-control" name="birthday" value="{{ $student->birthday }}"></input>
+                            <input type="date" class="form-control" name="birthday" value="{{ old('birthday') }}"></input>
                             
                         </div>  
                         <div class="form-group{{ $errors->has('nation') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">民族 ： </label>
-                            <input type="text" class="form-control" name="nation" value="{{ $student->nation }}">   
+                            <input type="text" class="form-control" name="nation" value="{{ old('nation') }}">   
                         </div>
                     </div>
 
@@ -43,22 +177,22 @@
                     <div class="row">
                         <div class="form-group{{ $errors->has('health') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">健康状况 ： </label>
-                            <input type="text" class="form-control" name="health" value="{{ $student->health }}">   
+                            <input type="text" class="form-control" name="health" value="{{ old('health') }}">   
                         </div>
 
                         <div class="form-group{{ $errors->has('interest') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">兴趣爱好 ： </label>
-                            <input type="text" class="form-control" name="interest" value="{{ $student->interest }}">   
+                            <input type="text" class="form-control" name="interest" value="{{ old('interest') }}">   
                         </div>
 
                         <div class="form-group{{ $errors->has('home_address') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">家庭住址 ： </label>
-                            <input type="text" class="form-control" name="home_address" value="{{ $student->home_address }}">
+                            <input type="text" class="form-control" name="home_address" value="{{ old('home_address') }}">
                         </div>
 
                         <div class="form-group{{ $errors->has('parents_info') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">父母信息 ： </label>
-                            <input type="text" class="form-control" name="parents_info" value="{{$student->parents_info }}">
+                            <input type="text" class="form-control" name="parents_info" value="{{ old('parents_info') }}">
                         </div>
 
                     </div>
@@ -91,60 +225,60 @@
 
                         <div class="form-group{{ $errors->has('class_room') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">班级 ： </label>
-                            <input type="number" class="form-control" name="class_room" value="{{ $student->class_room }}"> 
+                            <input type="number" class="form-control" name="class_room" value="{{ old('class_room') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('class_supervisor_name') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">班主任姓名 ： </label>
-                            <input type="text" class="form-control" name="class_supervisor_name" value="{{ $student->class_supervisor_name }}"> 
+                            <input type="text" class="form-control" name="class_supervisor_name" value="{{ old('class_supervisor_name') }}"> 
                         </div>
                     </div>
                     <div class="row">
                         <div class="form-group{{ $errors->has('class_supervisor_phone') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">班主任电话 ： </label>
-                            <input type="text" class="form-control" name="class_supervisor_phone" value="{{ $student->class_supervisor_phone }}"> 
+                            <input type="text" class="form-control" name="class_supervisor_phone" value="{{ old('class_supervisor_phone') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('chinese') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">语文成绩 ： </label>
-                            <input type="number" class="form-control" name="chinese" value="{{ $student->chinese }}"> 
+                            <input type="number" class="form-control" name="chinese" value="{{ old('chinese') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('math') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">数学成绩 ： </label>
-                            <input type="number" class="form-control" name="math" value="{{ $student->math}}"> 
+                            <input type="number" class="form-control" name="math" value="{{ old('math') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('english') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">英语成绩 ： </label>
-                            <input type="number" class="form-control" name="english" value="{{ $student->english }}"> 
+                            <input type="number" class="form-control" name="english" value="{{ old('english') }}"> 
                         </div>
                     </div>
                     <div class="row">
                         <div class="form-group{{ $errors->has('study_brief') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">学习情况简介 ： </label>
-                            <input type="text" class="form-control" name="study_brief" value="{{ $student->study_brief }}"> 
+                            <input type="text" class="form-control" name="study_brief" value="{{ old('study_brief') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('live_brief') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">生活情况简介 ： </label>
-                            <input type="text" class="form-control" name="live_brief" value="{{ $student->live_brief}}"> 
+                            <input type="text" class="form-control" name="live_brief" value="{{ old('live_brief') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('character_brief') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">性格情况简介 ： </label>
-                            <input type="text" class="form-control" name="character_brief" value="{{ $student->character_brief }}"> 
+                            <input type="text" class="form-control" name="character_brief" value="{{ old('character_brief') }}"> 
                         </div>
 
                         <div class="form-group{{ $errors->has('expectation') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">家长的期望 ： </label>
-                            <input type="text" class="form-control" name="expectation" value="{{ $student->expectation }}"> 
+                            <input type="text" class="form-control" name="expectation" value="{{ old('expectation') }}"> 
                         </div>
                     </div>
                     <div class="row">
                         <div class="form-group{{ $errors->has('expect_courses') ? ' has-error' : '' }} col-md-3">
                             <label class="control-label">期望学习的特长 ： </label>
-                            <input type="text" class="form-control" name="expect_courses" value="{{ $student->expect_courses }}"> 
+                            <input type="text" class="form-control" name="expect_courses" value="{{ old('expect_courses') }}"> 
                         </div>
                     </div>
                     <div class="row">
@@ -159,8 +293,8 @@
             </div>
         </div>
     </div>
-    <!--/span-->
+    /span
 
-</div><!--/row-->
+</div>/row-->
 
 @endsection

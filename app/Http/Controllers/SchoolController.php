@@ -13,7 +13,7 @@ class SchoolController extends Controller {
 
     public function __construct() {
         $this->middleware('auth');
-        $this->authorizeResource(School::class);
+//        $this->authorizeResource(School::class);
     }
 
     /**
@@ -22,9 +22,10 @@ class SchoolController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request) {
+        $this->authorize('viewAny', School::class);
         $school_id_current = $request->input('school_id');
         session()->put('school_id', $school_id_current);
-        $schools = \App\Model\School::where('parent_id',$school_id_current)->get();
+        $schools = \App\Model\School::where('parent_id', $school_id_current)->get();
         return view('school.index')->with('schools', $schools);
     }
 
@@ -34,10 +35,10 @@ class SchoolController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function create() {
-//        $users = User::whereNotIn('id', function ($query) {
-//                    $query->select('user_id')->from('user_has_role_in_school');
-//                })->get();
-        $users = User::all();
+        $this->authorize('create', School::class);
+        $users = User::whereIn('id', function ($query) {
+                    $query->select('user_id')->from('user_has_role_in_school')->where('school_id', null);
+                })->get();
         return view('school.create')->with('users', $users);
     }
 
@@ -48,7 +49,8 @@ class SchoolController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        $rules = array('name' => 'required|string|max:255','headmaster_id' => 'required');
+         $this->authorize('create', School::class);
+        $rules = array('name' => 'required|string|max:255', 'headmaster_id' => 'required');
         $validator = Validator::make($request->all(), $rules);
         // process the login
         if ($validator->fails()) {
@@ -56,18 +58,22 @@ class SchoolController extends Controller {
                             ->withErrors($validator);
         } else {
             $school = new School;
-            $school->parent_id = session('school_id');
+            if (auth()->user()->name === 'bscych') {//只有bscych能创建学校
+                $school->parent_id = null;
+            } else {
+                $school->parent_id = session('school_id'); //创建分校
+            }
             $school->name = $request->input('name');
             $school->phone = $request->input('phone');
             $school->address = $request->input('address');
             $school->lunch_fee = $request->input('lunch_fee');
             $school->dinner_fee = $request->input('dinner_fee');
             $school->snack_fee = $request->input('snack_fee');
-            $school->threshold = $request->input('threshold');            
-            $school->save();//insert a new school
-            $headmaster_id = $request->input('headmaster_id');//fetch user id
-            DB::table('user_has_role_in_school')->insert(['user_id' => $headmaster_id, 'school_id' => $school->id, 'constant_id' => \App\Model\Constant::where('name', 'headmaster')->first()->id]);//insert a record in user has role table
-            return redirect('/school?school_id='. session('school_id'));
+            $school->threshold = $request->input('threshold');
+            $school->save(); //insert a new school
+            $headmaster_id = $request->input('headmaster_id'); //fetch user id
+            DB::table('user_has_role_in_school')->where([['school_id', null], ['constant_id', null], ['user_id',$headmaster_id]])->update(['school_id' => $school->id, 'constant_id' => \App\Model\Constant::where('name', 'headmaster')->first()->id,'created_at'=>now()]); //update existing record in user has role table
+            return redirect(route('school.index'));
         }
     }
 
@@ -88,7 +94,8 @@ class SchoolController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function edit($id) {
-        //
+        $this->authorize('update', School::find($id));
+        return view('school.edit', ['school' => School::find($id)]);
     }
 
     /**
@@ -98,8 +105,26 @@ class SchoolController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id) {
-        //
+    public function update(Request $request,$id) {
+        $this->authorize('update', School::find($id));
+       $rules = array('name' => 'required|string|max:255', 'headmaster_id' => 'required');
+        $validator = validator()->make($request->all(), $rules);
+        // process the login
+        if ($validator->fails()) {
+            return redirect()->to('school/edit' . $request->input('id'))
+                            ->withErrors($validator);
+        } else {
+            $school = School::find($id);           
+            $school->name = $request->input('name');
+            $school->phone = $request->input('phone');
+            $school->address = $request->input('address');
+            $school->lunch_fee = $request->input('lunch_fee');
+            $school->dinner_fee = $request->input('dinner_fee');
+            $school->snack_fee = $request->input('snack_fee');
+            $school->threshold = $request->input('threshold');
+            $school->save(); 
+            return redirect(route('home'));
+        }
     }
 
     /**
@@ -111,9 +136,9 @@ class SchoolController extends Controller {
     public function destroy($id) {
         //
     }
-    
+
     public function switch($school_id) {
-        if($school_id!=null){
+        if ($school_id != null) {
             session()->put('school_id', $school_id);
             return redirect('/home');
         }

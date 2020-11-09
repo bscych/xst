@@ -6,7 +6,9 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">{{ __('数据字典') }}</div>
+                @if($id!=null)
                 <div class="card-header"> <a class="btn btn-primary" href="{{ URL::to('/constant/create?id='.$id) }}">创建新数据字典值</a></div>
+                @endif
                 <div class="card-body">
                     <table class="table table-striped">
                      <thead>
@@ -19,6 +21,7 @@
                     </thead>
                     <tbody>
                         @foreach ($constants as $model)
+                        @can('view',$model)
                         <tr>
                             <td>{{$model->id}} </td>
                             <td>{{$model->name}}</td>
@@ -39,11 +42,12 @@
                                 </a-->
                             </td>
                         </tr>
+                        @endcan
                         @endforeach
                     </tbody>
                     </table>
-
-                </div>
+                </div>               
+             
             </div>
         </div>
     </div>

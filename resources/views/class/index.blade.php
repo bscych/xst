@@ -8,20 +8,20 @@
                 <div class="card-header">{{ __('班级列表') }}</div>
                 @if(Auth::user()->can('create',App\Model\Classmodel::class))
                 <div class="card-header">
-                    <a href="{{route('class.create',['course_id'=>$course_id])}}" type="" class="btn btn-primary btn-sm">{{ __('添加') }}</a>
+                    <a href="{{route('classmodel.create',['course_id'=>$course_id])}}" type="" class="btn btn-primary btn-sm">{{ __('添加') }}</a>
                 </div>
                 @endif
                 <div class="card-body">
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>操作</th>
-                                <th class="hidden-sm hidden-xs">编号</th>
-                                <th>课程名称</th>
-                                <th class="hidden-sm hidden-xs">班级名称</th>
-                                <th class="hidden-sm hidden-xs">责任教师</th>
-                                <th class="hidden-sm hidden-xs">学生人数</th>
-                                <th>统计报表</th>
+                                <th class="">操作</th>
+                                <th class="">编号</th>
+                                <th class="">课程名称</th>
+                                <th class="">班级名称</th>
+                                <th class="">责任教师</th>
+                                <th class="">学生人数</th>
+                                <th class="">操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -34,27 +34,29 @@
                                     </a>  
                                     
                                 </td>
-                                <td class="hidden-sm hidden-xs">{{$model->id}} </td>
-                                <td class="hidden-sm hidden-xs">{{ $model->course->name }}</td>
-                                <td >{{ $model->course_name.$model->name }}</td>
-                                <td class="hidden-sm hidden-xs">{{ $model->teacher->name }}</td>
-                                <td class="hidden-sm hidden-xs">                                    
+                                <td class="">{{$model->id}} </td>
+                                <td class="">{{ $model->course->name }}</td>
+                                <td class="">{{ $model->course_name.$model->name }}</td>
+                                <td class="">{{ $model->teacher->name }}</td>
+                                <td class="">                                    
                                     @if($model->course->is_speciality_course==='1')
-                                    <a class="" href="{{route('class.studentList',[$model->id])}}">
+                                    <a class="" href="{{route('classmodel.studentList',[$model->id])}}">
                                         {{ $model->students->count()}}
                                     </a>
                                     @else
                                     {{ $model->students->count()}}
                                     @endif
                                 </td>
-                                <td> 
-                                    <form method="POST" action="{{route('class.destroy',[$model->id])}}">                                       
+                                <td class=""> 
+                                    <form method="POST" action="{{route('classmodel.destroy',[$model->id])}}">                                       
                                         <a class="btn btn-primary btn-sm {{$model->students->count()===0?'disabled':'disable'}}" href="{{route('schedule.month_detail',['classmodel_id'=>$model->id])}}">
                                             考勤报表
-                                        </a>                                       
-                                        @if(Auth::user()->can('edit',App\Model\Classmodel::class))
-                                        <a class="btn btn-primary btn-sm " href="{{route('class.edit',[$model->id])}}">编辑</a>
-                                        @endif
+                                        </a>
+                                         <a class="btn btn-primary btn-sm {{$model->students->count()===0?'disabled':'disable'}}" href="{{route('classmodel.printlist',[$model->id])}}">
+                                            打印作业
+                                        </a> 
+                                      @can('update',$model)<a class="btn btn-primary btn-sm " href="{{route('classmodel.edit',[$model->id])}}">编辑</a>@endcan
+                                       
                                         @if(Auth::user()->can('delete',$model))
                                         @csrf
                                         @method('DELETE')

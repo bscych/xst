@@ -143,7 +143,7 @@ class IncomeController extends Controller {
         }
         //特长课要显示具体班级
         if ($category->name === 'speciality_course_fee') {
-            $courses = DB::table('classmodels')->join('courses', 'courses.id', '=', 'classmodels.course_id')->where([['courses.deleted_at', '=', null], ['courses.is_speciality_course', '1'], ['classmodels.deleted_at', '=', null],['school_id', session()->get('school_id')]])->select('courses.name as course_name', 'classmodels.name as class_name', 'classmodels.id')->orderBy('courses.created_at', 'desc')->get();
+            $courses = DB::table('classmodels')->join('courses', 'courses.id', '=', 'classmodels.course_id')->where([['courses.deleted_at', '=', null], ['courses.is_speciality_course', '1'], ['classmodels.deleted_at', '=', null], ['school_id', session()->get('school_id')]])->select('courses.name as course_name', 'classmodels.name as class_name', 'classmodels.id')->orderBy('courses.created_at', 'desc')->get();
         }
         return view('income.student_pay')
                         ->with('student', $student)
@@ -157,7 +157,8 @@ class IncomeController extends Controller {
         $incomeCategory = Constant::find($request->input('name_of_account'));
         $rules = array('amount' => 'required',);
         $validator = validator($request->all(), $rules);
-        if ($validator->fails()) { return redirect('income/create?student_id=' . $student->id)->withErrors($validator);
+        if ($validator->fails()) {
+            return redirect('income/create?student_id=' . $student->id)->withErrors($validator);
         } else {
             //ot create an income record
             $this->createNewIncome();

@@ -14,13 +14,13 @@ class ModifyClassmodelsTable extends Migration
     public function up()
     {
         Schema::table('classmodels', function (Blueprint $table) {
-            $table->dropColumn('which_day_1');
+          
+            $table->renameColumn('which_day_1','which_days');          
             $table->dropColumn('which_day_2');
             $table->dropColumn('block1_end_time');
             $table->dropColumn('block1_start_time');
             $table->dropColumn('block2_end_time');
-            $table->dropColumn('block2_start_time');
-            $table->char('which_days')->comment('每周几上课')->default('[0,1,2,3,4,5,6]');
+            $table->dropColumn('block2_start_time');           
         });
     }
 

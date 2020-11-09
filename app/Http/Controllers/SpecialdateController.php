@@ -18,7 +18,7 @@ class SpecialdateController extends Controller
      */
     public function index()
     {
-         return view('specialdate.index')->with('dates', Specialdate::all());
+         return view('specialdate.index')->with('dates', Specialdate::where('school_id', session()->get('school_id'))->get());
     }
 
     /**
@@ -54,6 +54,7 @@ class SpecialdateController extends Controller
             $specialdate->name = $request->input('name');
             $specialdate->type = $request->input('type');
             $specialdate->which_day = $request->input('which_day');
+            $specialdate->school_id = session()->get('school_id');
             $specialdate->save();
             return $this->index();
         }

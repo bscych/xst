@@ -32,7 +32,7 @@
                                 <td class="hidden-sm hidden-xs">{{$model->id}} </td>
                                 <td>{{ $model->name }}</td>
                                 <td class="hidden-sm hidden-xs">{{ $model->paid_by }}</td>
-                                <td class="hidden-sm hidden-xs">{{ $model->amount}}</td>
+                                <td class="hidden-sm hidden-xs">￥{{ $model->amount}}</td>
                                 <td class="hidden-sm hidden-xs">{{ $model->payment_method}}</td>
                                 <td class="hidden-sm hidden-xs">{{ $model->created_at}}</td>
                                 <td>{{ $model->comment}}</td>

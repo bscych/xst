@@ -9,7 +9,7 @@
 
                 @if(Auth::user()->can('create',App\Model\Course::class))
                 <div class="card-header">
-                    <a href="{{route('course.create',['school_id'=>session()->get('school_id')])}}" type="" class="btn btn-primary btn-sm">{{ __('添加课程') }}</a>
+                    <a href="{{route('course.create')}}" type="" class="btn btn-primary btn-sm">{{ __('添加课程') }}</a>
                 </div>
                 @endif
                 <div class="card-body">
@@ -28,12 +28,12 @@
                             <tr>
                                 <td class="hidden-sm hidden-xs">{{$model->id}} </td>
                                 <td>{{ $model->name }}</td>                               
-                                <td>{{ $model->is_speciality_course==='1'?'特长课':'托管课' }}</td>
+                                <td>{{ $model->is_speciality_course===1?'特长课':'托管课' }}</td>
                                 <td class="center">
-                                    <form action="{{ route('course.destroy',$model->id)}}" method="post">
-                                        <a class="btn btn-primary" href="{{url('course/'.$model->id.'/edit')}}"> 编辑</a>
-                                        <a class="btn btn-primary" href="{{route('course.studentList',[$model->id])}}">学生列表 </a>
-                                        <a class="btn btn-primary" href="{{route('class.index',['course_id'=>$model->id])}}"> 班级管理</a>
+                                    <form action="{{ route('course.destroy',$model)}}" method="post">
+                                      @can('update',$model)<a class="btn btn-primary" href="{{route('course.edit',$model)}}"> 编辑</a>@endcan
+                                      @can('studentList',App\Model\Course::class) <a class="btn btn-primary" href="{{route('course.studentList',[$model->id])}}">学生列表 </a>@endcan
+                                        <a class="btn btn-primary" href="{{route('classmodel.index',['course_id'=>$model->id])}}"> 班级管理</a>
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-danger" type="submit">结课</button>

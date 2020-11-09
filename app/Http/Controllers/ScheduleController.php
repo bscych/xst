@@ -34,6 +34,7 @@ class ScheduleController extends Controller {
         session('date', $date);
         $student_id = session('student_id');
         $classmodel_id = session('classmodel_id');
+        $this->autoBookMeal($classmodel_id,$date); //auto book meals
         $class = \App\Model\Classmodel::find($classmodel_id); //class will always be found whoever request. 
         $schedules = $this->lazyInitSchedules($class, $date);
         return view('schedule.create', ['schedules' => $schedules, 'date' => $date, 'student_id' => $student_id]);
@@ -79,8 +80,8 @@ class ScheduleController extends Controller {
      * get the first ongoing 托管class
      */
 
-    private function getClassmodelByStudentId($student_id) {
-        $classes = \App\Model\Student::find($student_id)->classmodels;
+    private function getClassmodelByStudent($student) {
+        $classes = $student->classmodels;
         $sortedClasses = $classes->sortByDesc('id');
         foreach ($sortedClasses as $class) {
             if ($class->course->is_speciality_course === '0') {
@@ -146,6 +147,23 @@ class ScheduleController extends Controller {
         $schedule->save();
     }
 
+public function setAutoBookMeal(Request $request) {
+        $student_id = $request->input('student_id');
+        $class_id = $request->input('class_id');
+        $auto_book_meal_singal = $request->input('auto_book_meal_singal');
+        $which_meal = $request->input('which_meal');
+        if($auto_book_meal_singal){
+            $updateArr = [$which_meal=>$auto_book_meal_singal?1:0,'attended'=>1];
+        }else{
+            $updateArr = [$which_meal=>0];
+        }
+   
+        DB::table('auto_book_meal_students')->updateOrInsert(
+                ['student_id' => $student_id, 'class_id' => $class_id, 'school_id' => session('school_id')],
+                $updateArr
+        );
+    }
+
     /**
      * Display the specified resource.
      *
@@ -187,6 +205,38 @@ class ScheduleController extends Controller {
         //
     }
 
+    /*
+     * parent can book meals for their kids, parents can book meals only when their kids are taking 托管类型 course
+     * 
+     */
+
+    public function parentBookMeals(Request $request) {
+        $student = \App\Model\Student::find($request->input('student_id'));
+        if ($student != null) {
+            session()->put('student_id', $student->id);
+        }
+        $class = \App\Model\Classmodel::find($request->input('classmodel_id')); //get student's attending class
+        if ($class != null) {
+            session()->put('classmodel_id', $class->id);
+        }
+        $returnData = collect();
+        $data = $this->formCalendarList($class);
+        foreach ($data as $date) {
+            $dDate = data_get($date, config()->get('constants.DATE_STRING_KEY'));
+            $schedules = $this->lazyInitSchedules($class, $dDate);
+            $schedule = $schedules->where('student_id', session('student_id'))->first();
+            $dateColl = collect($date);
+            $dateColl->put(config()->get('constants.SCHEDULE_STRING_KEY'), $schedule);
+            $menu = \App\Model\Menu::where('which_day', $dDate)->where('school_id', session()->get('school_id'))->first();
+            $dateColl->put(config()->get('constants.MENU_STRING_KEY'), $menu);
+            $dateColl->put(config()->get('constants.CAN_DISPLAY_STRING_KEY'), $this->canDisplay($dDate, $class));
+            $dateColl->put(config()->get('constants.CAN_EDIT_STRING_KEY'), $this->canEditByDateTime($dDate));
+            $returnData->push($dateColl);
+        }
+        $autoBookMeal = DB::table('auto_book_meal_students')->where('school_id', session('school_id'))->where('student_id', session('student_id'))->where('class_id', session('classmodel_id'))->first();
+        return view('schedule.create_parent', ['schedules' => $returnData, 'student' => $student, 'class' => $class,'auto_book_meal'=>$autoBookMeal]);
+    }
+
     public function getCalendarList(Request $request) {
         session()->put('classmodel_id', $request->input('classmodel_id')); //class id can be null, if the class id is not null and student id is null,which means the request is from teacher
         session()->put('student_id', $request->input('student_id')); //student can be null, if student id is not null and class id is null, which means the request is from parent
@@ -196,7 +246,7 @@ class ScheduleController extends Controller {
     private function getScheduleDates() {
         $class = null;
         if (session('classmodel_id') === null) {
-            $class = $this->getClassmodelByStudentId(session()->get('student_id'));
+            $class = $this->getClassmodelByStudent(\App\Model\Student::find(session()->get('student_id')));
         } else {
             $class = \App\Model\Classmodel::find(session()->get('classmodel_id'));
         }
@@ -205,22 +255,20 @@ class ScheduleController extends Controller {
 
     private function formCalendarList($class) {
         $data = collect();
-        $DATE_STRING_KEY = 'date';
-        $SUBMITTABLE_STRING_KEY = 'submittable';
         if ($class == null) {
             return $data;
         }
-        if ($class->course->is_speciality_course === '1') {
+        if ($class->course->is_speciality_course === 1) {
             foreach (json_decode($class->which_days) as $day) {
-                if (now()->dayOfWeek === $day) {
-                    $dateArray = Arr::add(Arr::add([], $DATE_STRING_KEY, now()->format('Y-m-d')), $SUBMITTABLE_STRING_KEY, $this->canDisplay(now()->format('Y-m-d'), $class));
+                if (now()->dayOfWeek === data_get($day, 'day')) {
+                    $dateArray = Arr::add(Arr::add([], config()->get('constants.DATE_STRING_KEY'), now()->format('Y-m-d')), config()->get('constants.SUBMITTABLE_STRING_KEY'), $this->canDisplay(now()->format('Y-m-d'), $class));
                     $data->push($dateArray);
                 }
             }
         } else {
             for ($i = 0; $i < 7; $i++) {
                 $date = now()->addDays($i - (now()->dayOfWeek))->format('Y-m-d');
-                $dateArray = Arr::add(Arr::add([], $DATE_STRING_KEY, $date), $SUBMITTABLE_STRING_KEY, $this->canDisplay($date, $class));
+                $dateArray = Arr::add(Arr::add([], config()->get('constants.DATE_STRING_KEY'), $date), config()->get('constants.SUBMITTABLE_STRING_KEY'), $this->canDisplay($date, $class));
                 $data->push($dateArray);
             }
         }
@@ -233,30 +281,72 @@ class ScheduleController extends Controller {
 
     private function canDisplay($theDate, $class) {
         $date = \Illuminate\Support\Carbon::make($theDate);
-        $holidays = Specialdate::where('type', Specialdate::$HOLIDAY)->get();
-        $workingdays = Specialdate::where('type', Specialdate::$WORKINGDAY)->get();
-
+        $holidays = Specialdate::where('type', Specialdate::$HOLIDAY)->where('school_id', session()->get('school_id'))->get();
+        $workingdays = Specialdate::where('type', Specialdate::$WORKINGDAY)->where('school_id', session()->get('school_id'))->get();
         //周6，周日，国家法定假日，课程的开始的第一天，课程结束的最后一天
         $classStart_date = \Illuminate\Support\Carbon::make($class->start_date)->format('Y-m-d');
-        $ClassClosed_date = \Illuminate\Support\Carbon::make($class->end_date)->format('Y-m-d');
-//        非托管的课程只显示当天，并且节假日都能打卡
-        if ($class->course->is_speciality_course === '1') {
-            return true;
+        if ($class->end_date === null) {
+            $ClassClosed_date = null;
         } else {
-//        托管类的周日周六，国家法定节假日都不能打卡订餐
-            if ($date->dayOfWeek === 6 or $date->dayOfWeek === 0 or $holidays->where('which_day', $theDate)->count() === 1 or $ClassClosed_date <= $date or $classStart_date >= $date) {
-                if ($workingdays->where('which_day', $theDate)->count() === 0) {
-                    return false;
-                } else {
-                    return true;
-                }
+            $ClassClosed_date = \Illuminate\Support\Carbon::make($class->end_date)->format('Y-m-d');
+        }
+        if ($class->course->is_speciality_course === 1) {//非托管的课程只显示当天，并且节假日都能打卡
+            return true;
+        }
+        if ($ClassClosed_date < $date or $ClassClosed_date === null) {//超过课程结束日期， 不能点餐，签到
+            return false;
+        }
+        if ($classStart_date > $date) {//不到课程开始日期，不能点餐，签到
+            return false;
+        }
+        if (($date->dayOfWeek === 6 or $date->dayOfWeek === 0 or $holidays->where('which_day', $theDate)->count() === 1) and $class->course->is_speciality_course === 0 ) { // 托管类的周日周六，国家法定节假日都不能打卡订餐  
+            if ($workingdays->where('which_day', $theDate)->count() === 0) {
+                return false;
             } else {
                 return true;
             }
+        } else {
+            //    如果选择特定的哪一天托管，那么检查which_days是否为空
+                    $whichDays = collect(json_decode($class->which_days));
+                    if ($whichDays->isEmpty()) {
+                        // 如果每周正常托管，class的上课频率一周内每天都没勾选，就返回true
+                        return true;
+                    } else {
+//              which_days不为空则说明，特定某天托管，只允许订当天的餐
+                        foreach($whichDays as $whichDay){
+                            if($whichDay->day===$date->dayOfWeek){
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
         }
     }
 
+    private function canEditByDateTime($date) {
+        $currentDate = date('Y-m-d', time());
+        //比当天晚的餐，可以
+        if ($date > $currentDate) {
+            return true;
+        }
+        //今天的餐，家长9点前可以，9点后不可以，老师今天都可以
+        if ($date == $currentDate) {
+            if (\Illuminate\Support\Carbon::now()->greaterThan(\Illuminate\Support\Carbon::createFromTime(9, 0, 0))) {
+                return false;
+            }
+            return true;
+        }
+        //比今天晚的餐，只能查看，不能编辑
+        return false;
+    }
+
     function getScheduleDetailByMonth(Request $request) {
+        $student_id = $request->input('student_id');
+        $student = null;
+        if ($student_id != null) {
+            session()->put('student_id', $student_id);
+            $student = \App\Model\Student::find($student_id);
+        }
         $classmodel_id = $request->input('classmodel_id');
         session()->put('classmodel_id', $classmodel_id);
         $classmodel = \App\Model\Classmodel::find($classmodel_id);
@@ -267,11 +357,18 @@ class ScheduleController extends Controller {
         } else {
             $date = now()->setDay(1);
         }
-        return $this->getScheduleDetailByClassAndDate($classmodel, $date);
+        return $this->getScheduleDetailByClassAndDate($classmodel, $student, $date);
     }
 
-    private function getScheduleDetailByClassAndDate($classmodel, \Illuminate\Support\Carbon $date) {
-        $schedules = Schedule::where('classmodel_id', $classmodel->id)->whereYear('date', $date->year)->whereMonth('date', $date->month)->get();
+    private function getScheduleDetailByClassAndDate($classmodel, $student, \Illuminate\Support\Carbon $date) {
+        $students = null;
+        if ($student != null) {
+            $schedules = Schedule::where([['classmodel_id', $classmodel->id], ['student_id', $student->id]])->whereYear('date', $date->year)->whereMonth('date', $date->month)->get();
+            $students = collect($classmodel->students->where('id', $student->id)->all());
+        } else {
+            $schedules = Schedule::where('classmodel_id', $classmodel->id)->whereYear('date', $date->year)->whereMonth('date', $date->month)->get();
+            $students = $classmodel->students;
+        }
         $theDate = \Illuminate\Support\Carbon::create($date->format('Y-m-d'));
         $nextMonth = $theDate->addMonth()->month; //next month
         $theDate->subMonth(); //set the month back to current month
@@ -280,14 +377,16 @@ class ScheduleController extends Controller {
             $data->push($theDate->format('Y-m-d'));
             $theDate->addDay();
         }
-        return view('schedule.schedule_month_detail', ['schedules' => $schedules, 'date' => $date, 'class' => $classmodel, 'dates' => $data]);
+        return view('schedule.schedule_month_detail', ['schedules' => $schedules, 'date' => $date, 'students' => $students, 'dates' => $data, 'class' => $classmodel]);
     }
 
     function getLastMonthScheduleDetail(Request $request) {
         $date = $request->input('date');
         if ($date != null) {
             $date = \Illuminate\Support\Carbon::create($date)->subMonth();
-            return $this->getScheduleDetailByClassAndDate(\App\Model\Classmodel::find(session()->get('classmodel_id')), $date);
+            $clasmodel = \App\Model\Classmodel::find(session()->get('classmodel_id'));
+            $student = \App\Model\Student::find(session()->get('student_id'));
+            return $this->getScheduleDetailByClassAndDate($clasmodel, $student, $date);
         }
     }
 
@@ -295,13 +394,16 @@ class ScheduleController extends Controller {
         $date = $request->input('date');
         if ($date != null) {
             $date = \Illuminate\Support\Carbon::create($date)->addMonth();
-            return $this->getScheduleDetailByClassAndDate(\App\Model\Classmodel::find(session()->get('classmodel_id')), $date);
+            $clasmodel = \App\Model\Classmodel::find(session()->get('classmodel_id'));
+            $student = \App\Model\Student::find(session()->get('student_id'));
+            return $this->getScheduleDetailByClassAndDate($clasmodel, $student, $date);
         }
     }
-    
-      /*
+
+    /*
      * 打卡日期已经过了，超级管理员和管理员可以补打卡
      */
+
     public function reCheckIn(Request $request) {
         $this->authorize('$request');
         if (auth()->user()->hasanyrole('admin|superAdmin')) {
@@ -312,6 +414,21 @@ class ScheduleController extends Controller {
             return View::make('backend.schedule.create')->with('students', $attendance)->with('date', $date)->with('class_id', $class_id)->with('meal_flags', $this->getMealFlags($class_id))->with('exception', $this->getDinnerExceptions());
         } else {
             return '404';
+        }
+    }
+    
+     function autoBookMeal($class_id,$date) {
+        $students = DB::table('auto_book_meal_students')
+                ->where('class_id', $class_id)
+                ->get();
+        if ($students->count() > 0) {
+            foreach ($students as $student) {
+                DB::table('schedules')                      
+                        ->where('student_id', $student->student_id)
+                        ->where('classmodel_id',$class_id)
+                        ->where('date',$date)
+                        ->update(['attend' => $student->attended, 'lunch' => $student->lunch, 'dinner' => $student->dinner]);
+            }
         }
     }
 

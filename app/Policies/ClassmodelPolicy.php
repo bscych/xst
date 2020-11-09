@@ -17,6 +17,7 @@ class ClassmodelPolicy {
      * @return mixed
      */
     public function viewAny(User $user) {
+
         return true;
     }
 
@@ -29,7 +30,7 @@ class ClassmodelPolicy {
      */
     public function view(User $user, Classmodel $classmodel) {
         $roles = $user->roles;
-        $result = $roles->whereIn('name', ['admin', 'headmaster', 'supervisor'])->count() > 0;
+        $result = $roles->whereIn('name', ['headmaster', 'supervisor'])->count() > 0;
         return $result;
     }
 
@@ -41,7 +42,7 @@ class ClassmodelPolicy {
      */
     public function create(User $user) {
         $roles = $user->roles;
-        $result = $roles->whereIn('name', ['admin', 'headmaster', 'supervisor'])->count() > 0;
+        $result = $roles->whereIn('name', ['headmaster', 'supervisor'])->count() > 0;
         return $result;
     }
 
@@ -53,7 +54,9 @@ class ClassmodelPolicy {
      * @return mixed
      */
     public function update(User $user, Classmodel $classmodel) {
-        return true;
+        $roles = $user->roles;
+        $result = $roles->whereIn('name', ['headmaster', 'supervisor'])->count() > 0;
+        return $result;
     }
 
     /**
@@ -64,7 +67,9 @@ class ClassmodelPolicy {
      * @return mixed
      */
     public function delete(User $user, Classmodel $classmodel) {
-        return true;
+        $roles = $user->roles;
+        $result = $roles->whereIn('name', ['headmaster'])->count() > 0;
+        return $result;
     }
 
     /**

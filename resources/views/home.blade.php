@@ -14,7 +14,14 @@
                         </div>
                     @endif
 
-                    当前学校：<h1> <x-displayer/></h1>
+                    @if(session('wechat_user'))
+                     <div class="alert alert-success" role="alert">
+                            {{session('wechat_user') }}
+                        </div>
+                    @endif
+                    <h1> <x-displayer/></h1>
+                    
+                 
                 </div>
             </div>
         </div>

@@ -6,8 +6,8 @@ use App\Model\Constant;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class ConstantPolicy
-{
+class ConstantPolicy {
+
     use HandlesAuthorization;
 
     /**
@@ -16,9 +16,8 @@ class ConstantPolicy
      * @param  \App\User  $user
      * @return mixed
      */
-    public function viewAny(User $user)
-    {
-        return $user->name ==='bscych';
+    public function viewAny(User $user) {
+        return $user->roles->whereIn('id', [46, 47])->count() > 0;
     }
 
     /**
@@ -28,9 +27,18 @@ class ConstantPolicy
      * @param  \App\App\Model\Constant  $constant
      * @return mixed
      */
-    public function view(User $user, Constant $constant)
-    {
-        return $user->name =='bscych';
+    public function view(User $user, Constant $constant) {
+        $can_see = false;
+        if ($this->viewAny($user)) {
+            $not_display = collect([1, 2, 3, 4, 5, 6, 45]);
+            if (!$not_display->contains($constant->id)) {
+                $can_see = true;
+            }
+        }
+        if ($user->id === 1) {
+            $can_see = true;
+        }
+        return $can_see;
     }
 
     /**
@@ -39,9 +47,8 @@ class ConstantPolicy
      * @param  \App\User  $user
      * @return mixed
      */
-    public function create(User $user)
-    {
-        return $user->name =='bscych';
+    public function create(User $user) {
+        return $this->viewAny($user);
     }
 
     /**
@@ -51,9 +58,8 @@ class ConstantPolicy
      * @param  \App\App\Model\Constant  $constant
      * @return mixed
      */
-    public function update(User $user, Constant $constant)
-    {
-        return $user->name =='bscych';
+    public function update(User $user, Constant $constant) {
+        return $user->name == 'bscych';
     }
 
     /**
@@ -63,9 +69,8 @@ class ConstantPolicy
      * @param  \App\App\Model\Constant  $constant
      * @return mixed
      */
-    public function delete(User $user, Constant $constant)
-    {
-        return $user->name =='bscych';
+    public function delete(User $user, Constant $constant) {
+        return $user->name == 'bscych';
     }
 
     /**
@@ -75,9 +80,8 @@ class ConstantPolicy
      * @param  \App\App\Model\Constant  $constant
      * @return mixed
      */
-    public function restore(User $user, Constant $constant)
-    {
-        return $user->name ==='bscych';
+    public function restore(User $user, Constant $constant) {
+        return $user->name === 'bscych';
     }
 
     /**
@@ -87,8 +91,8 @@ class ConstantPolicy
      * @param  \App\App\Model\Constant  $constant
      * @return mixed
      */
-    public function forceDelete(User $user, Constant $constant)
-    {
-       return $user->name =='bscych';
+    public function forceDelete(User $user, Constant $constant) {
+        return $user->name == 'bscych';
     }
+
 }

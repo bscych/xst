@@ -1,119 +1,139 @@
-@extends('layouts.wechat')
+@extends('layouts.app')
 
 @section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">{{ __('编辑课程') }}</div>
 
-<div class="row">
-    <div class="box col-md-12">
-        <div class="box-inner">
-            <div class="box-header well" data-original-title="">
-                <h2><i class=""></i>编辑课程信息</h2>
-            </div>
-            <div class="box-content">
+                <div class="card-body">
+                    <form method="POST" action="{{ route('course.update',$model) }}">
+                        @method('PUT')
+                        @csrf
 
+                        <div class="form-group row">
+                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('课程名称（必填）') }}</label>
 
-                <form role="form" method="POST" action="{{ route('course.update',['id'=>$model->id]) }}">
-                    <div id="myTabContent" class="tab-content">
-                        <div class="tab-pane active" id="info">
-                            <div class="box-content">
-                                @method('PUT')
-                                @csrf
-                                <div class="row">
-                                    <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }} col-md-3">
-                                        <label class="control-label">课程名称 ： </label>
-                                        <input type="text" class="form-control" name="name" value="{{ $model->name }}">   
+                            <div class="col-md-6">
+                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ $model->name }}" required autocomplete="name" autofocus>
 
-                                    </div>
-                                    <div class="form-group{{ $errors->has('courseCategory_id') ? ' has-error' : '' }}  col-md-3">
-                                        <label class="control-label">课程类别 ： </label>
-                                        <select class="form-control" name="course_category_id" id="courseCategory_id">
-                                            @foreach($courseCategories as $courseCategory)
-                                            <option value="{{$courseCategory->id}}" {{$courseCategory->id==$model->course_category_id?'selected':''}}>{{$courseCategory->name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group{{ $errors->has('duration') ? ' has-error' : '' }}  col-md-3">
-                                        <label class="control-label">总时长 ： </label>
-                                        <input id="duration" type="" class="form-control" name="duration" value="{{ $model->duration }}" placeholder="0">   
-
-                                    </div>
-                                    <div class="form-group{{ $errors->has('unit') ? ' has-error' : '' }}  col-md-3">
-                                        <label class="control-label">单位 ： </label>
-                                        <select class="form-control" name="unit">
-                                            <option value="月">月</option>
-                                            <option value="课时">课时</option>
-                                        </select>
-
-                                    </div>
-                                    <div class="form-group{{ $errors->has('unit_price') ? ' has-error' : ''}}  col-md-3">
-                                        <label class="control-label">课程单价 ： </label>
-                                        <input type="number" id="unit_price" class="form-control" name="unit_price" value="{{ $model->unit_price }}" placeholder="0">   
-
-                                    </div>
-
-                                    <div class="form-group{{ $errors->has('snack_fee') ? ' has-error' : ''}}  col-md-3">
-                                        <label class="control-label">间点费 ： </label>
-                                        <input type="text" id="unit_price" class="form-control" name="snack_fee" value="{{ $model->snack_fee }}" placeholder="0">   
-
-                                    </div>
-
-                                </div>
-                             
-                                <div class="row">
-                                    <div class="form-group  col-md-3">
-                                        <label class="control-label">开始日期 ： </label>
-                                        <input type="date" id="startDate" class="form-control" name="start_date" value="{{ $model->start_date}}">   
-                                    </div>
-
-                                    <div class="form-group  col-md-3">
-                                        <label class="control-label">结束日期 ： </label>
-                                        <input type="date" id="endDate" class="form-control" name="end_date" value="{{$model->end_date }}">   
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group  col-md-3">
-                                        <label class="control-label">是否提供午餐 ： </label>
-                                        <select name="has_lunch" class="form-control">
-                                            <option value="1" {{$model->has_lunch==1?'selected':''}}>是</option>
-                                            <option value="0" {{$model->has_lunch==0?'selected':''}}>否</option>
-                                        </select>   
-                                    </div>
-
-                                    <div class="form-group  col-md-3">
-                                        <label class="control-label">是否提供晚餐 ： </label>
-                                        <select name="has_dinner" class="form-control">
-                                            <option value="1" {{$model->has_dinner==1?'selected':''}}>是</option>
-                                            <option value="0" {{$model->has_dinner==0?'selected':''}}>否</option>
-                                        </select>     
-                                    </div>
-                                    <div class="form-group  col-md-3">
-                                        <label class="control-label">是否纳入用餐统计报表 ： </label>
-                                        <select name="in_count" class="form-control">
-                                            <option value="1" {{$model->in_count==1?'selected':''}}>是</option>
-                                            <option value="0" {{$model->in_count==0?'selected':''}}>否</option>
-                                        </select>  
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group  col-md-4">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa fa-btn fa-user"></i>提交
-                                        </button>
-
-                                    </div>
-                                </div>
-
+                                @error('name')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
                             </div>
                         </div>
-                    </div>
-                </form>
+
+                        <div class="form-group row">
+                            <label for="unit_price" class="col-md-4 col-form-label text-md-right">{{ __('课程单价') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="unit_price" type="number" class="form-control @error('unit_price') is-invalid @enderror" name="unit_price"  value="{{$model->unit_price}}">
+
+                                @error('unit_price')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="unit" class="col-md-4 col-form-label text-md-right">{{ __('单位') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="unit" type="text" class="form-control @error('unit') is-invalid @enderror disabled" name="unit"  value="{{$model->unit}}">
+
+                                @error('unit')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="duration" class="col-md-4 col-form-label text-md-right">{{ __('总时长') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="duration" type="number" class="form-control @error('duration') is-invalid @enderror" name="duration" value="{{$model->duration}}">
+
+                                @error('duration')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="is_speciality_course" class="col-md-4 col-form-label text-md-right">{{ __('是否是特长课') }}<span class="small text-danger">（幼小，小学托管不属于特长课）</span></label>
+
+                            <div class="col-md-6">
+                                <select name="is_speciality_course" class="form-control">
+                                    <option value="1" {{$model->is_speciality_course==='1'?'selected':''}}>是</option>
+                                    <option value="0" {{$model->is_speciality_course==='0'?'selected':''}}>否</option>
+                                </select>   
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="has_snack" class="col-md-4 col-form-label text-md-right">{{ __('是否提供间点') }}</label>
+
+                            <div class="col-md-6">
+                                <select name="has_snack" class="form-control">
+                                    <option value="1" {{$model->has_snack==='1'?'selected':''}}>是</option>
+                                    <option value="0" {{$model->has_snack==='0'?'selected':''}}>否</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="has_lunch" class="col-md-4 col-form-label text-md-right">{{ __('是否提供午餐') }}</label>
+
+                            <div class="col-md-6">
+                                <select name="has_lunch" class="form-control">
+                                    <option value="1" {{$model->has_lunch==='1'?'selected':''}}>是</option>
+                                    <option value="0" {{$model->has_lunch==='0'?'selected':''}}>否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="has_dinner" class="col-md-4 col-form-label text-md-right">{{ __('是否提供晚餐') }}</label>
+
+                            <div class="col-md-6">
+                                <select name="has_dinner" class="form-control">
+                                    <option value="1" {{$model->has_dinner==='1'?'selected':''}}>是</option>
+                                    <option value="0" {{$model->has_dinner==='0'?'selected':''}}>否</option>
+                                </select>   
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row">
+                            <label for="in_count" class="col-md-4 col-form-label text-md-right">{{ __('是否纳入用统计') }}</label>
+
+                            <div class="col-md-6">
+                                <select name="in_count" class="form-control">
+                                    <option value="1" {{$model->in_count==='1'?'selected':''}}>是</option>
+                                    <option value="0" {{$model->in_count==='0'?'selected':''}}>否</option>
+                                </select>                               
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-0">
+                            <div class="col-md-6 offset-md-4">
+                                <button type="submit" class="btn btn-primary">
+                                    {{ __('提交') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-
-    <!--/span-->
-
-</div><!--/row-->
-
+</div>
 @endsection

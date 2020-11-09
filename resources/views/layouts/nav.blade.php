@@ -2,8 +2,8 @@
     <div class="container">
         <a class="navbar-brand" href="{{ url('/') }}">
             @guest
-            <img src="{{asset('imgs/logo.svg')}}" width="30" height="30" class="d-inline-block align-top" alt="">
-            {{ config('app.name', 'XST') }}
+            <img src="{{asset('imgs/logo20.png')}}" width="30" height="30" class="d-inline-block align-top" alt="">
+            {{ config('app.name', '小书童') }}
             @else 
             <div><x-displayer/></div>
             @endguest
@@ -41,20 +41,42 @@
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">                        
                         <a class="dropdown-item" href="{{ route('constant.index') }}">{{ __('数据字典') }}</a>
                         <a class="dropdown-item" href="{{ route('specialdate.index') }}">{{ __('特殊日期') }}</a>
+                        @can('edit',App\Model\School::find(session()->get('school_id')))
+                        <a class="dropdown-item" href="{{ route('school.edit',session()->get('school_id')) }}">{{ __('设置学校参数') }}</a>
+                        @endcan
                     </div>
                 </li>
                 @endcan
 
                 @can('view-class')
-                <li><a class="nav-link" href="{{ route('class.index') }}">{{ __('我的课程') }}</a></li>
+                <li><a class="nav-link" href="{{ route('classmodel.index') }}">{{ __('我的课程') }}</a></li>   
+         
+                @endcan
+                @can('view-homework')
+        
+                 <li><a class="nav-link" href="{{ route('homework.index') }}">{{ __('作业') }}</a></li>
+                @endcan
+                 @can('view-tck-statistic')               
+                <li><a class="nav-link" href="{{ route('user.getMyWorkingSheet') }}">{{ __('特长课时统计') }}</a></li>
                 @endcan
 
                 @can('view-parent')
-                <li><a class="nav-link" href="{{ route('parent.bookmeal') }}">{{ __('给我的孩子订餐') }}</a></li>
+                 <li><a class="nav-link" href="{{ route('parent.register') }}">{{ __('课程列表') }}</a></li>
+                <li><a class="nav-link" href="{{ route('parent.bookmeal') }}">{{ __('快速订餐') }}</a></li>
+                <li><a class="nav-link" href="{{ route('parent.findMyKid') }}">{{ __('绑定子女') }}</a></li>
+                <li><a class="nav-link" href="{{ route('parent.bookingHistory') }}">{{ __('孩子的订餐记录') }}</a></li>
+               
                 @endcan
 
                 @can('view-student')
                 <li><a class="nav-link" href="{{ route('student.index') }}">{{ __('学生') }}</a></li>
+         
+                @endcan
+                
+                 @can('view-visitor')
+               
+                 <li><a class="nav-link" href="{{ route('visitor.index') }}">{{ __('到访') }}</a></li>
+                  
                 @endcan
 
                 @can('view-user')
@@ -63,6 +85,7 @@
 
                 @can('view-course')
                 <li><a class="nav-link" href="{{ route('course.index') }}">{{ __('课程') }}</a></li>
+                
                 @endcan
 
                 @can('view-canteen')
@@ -71,10 +94,10 @@
                         食堂 <span class="caret"></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="{{ route('logout') }}">
+                        <a class="dropdown-item" href="{{ route('menu.index') }}">
                             {{ __('菜单') }}
                         </a>
-                        <a class="dropdown-item" href="{{ route('logout') }}">
+                        <a class="dropdown-item" href="{{ route('menuitem.index') }}">
                             {{ __('菜品') }}
                         </a>
                     </div>
@@ -93,6 +116,12 @@
                         <a class="dropdown-item" href="{{ route('income.index') }}">
                             {{ __('收入') }}
                         </a>
+                         <!--a class="dropdown-item" href="{{ route('payment.index') }}">
+                            {{ __('缴费') }}
+                        </a>
+                         <a class="dropdown-item" href="{{ route('payment.index') }}">
+                            {{ __('退费') }}
+                        </a-->
                         <a class="dropdown-item" href="{{ route('finance.monthList') }}">
                             {{ __('报表') }}
                         </a>                                 
@@ -112,12 +141,7 @@
                     </div>
                 </li>
                 @endcan
-                <!--li>
-                 <a class="nav-link" href="{{ route('school.index') }}">{{ __('学校管理') }}</a>
-                </li>
-                <li>
-                 <a class="nav-link" href="{{ route('school.index') }}">{{ __('学校管理') }}</a>
-                </li-->
+               
                 <li class="nav-item dropdown">
                     <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                         {{ Auth::user()->name }} <span class="caret"></span>

@@ -29,6 +29,8 @@
                                 <th class="hidden-sm hidden-xs">学号</th>
                                 <th>姓名</th>
                                 <th class="hidden-sm hidden-xs">性别</th>
+                                <th class="hidden-sm hidden-xs">就读学校</th>
+                                <th class="hidden-sm hidden-xs">年级</th>
                                 <th class="hidden-sm hidden-xs">生日</th>
 
                                 <th>操作</th>
@@ -40,22 +42,27 @@
                                 <td class="hidden-sm hidden-xs">{{$model->id}} </td>
                                 <td><a  href="{{ URL::to('student/'. $model->id) }}">{{ $model->name }}</a></td>
                                 <td class="hidden-sm hidden-xs">{{ $model->gender }}</td>
+                               <td class="hidden-sm hidden-xs">{{ App\Model\Constant::find($model->constant_school_id)->label_name }}</td>
+                               <td class="hidden-sm hidden-xs">{{ $model->grade.'年'.$model->class_room.'班' }}</td>
+                                
                                 <td class="hidden-sm hidden-xs">{{ $model->birthday }}</td>
                                 <td class="center">
                                     <form action="{{ route('student.destroy',$model->id)}}" method="post">
-                                        <a class="btn btn-info" href="{{ URL::to('student/' . $model->id . '/edit') }}">
+                                        @can('update',$model)
+                                        <a class="btn btn-info" href="{{ route('student.edit',$model) }}">
                                             编辑
                                         </a>
-                                                                             
+                                         @endcan
                                         <a class="btn btn-primary" href="{{route('income.selectPaymentCategories',[$model->id])}}">
                                             交费
                                         </a>
 
-                                        <a class="btn btn-primary" href="#">
+                                        <a class="btn btn-primary" href="{{route('spend.refund',['student_id'=>$model->id])}}">
                                             退费
                                         </a>
-                                        <a class="btn btn-primary" href="#">
-                                            注册码管理
+                                        
+                                        <a class="btn btn-primary" href="{{route('student.getRegisterCodes',['student_id'=>$model->id])}}">
+                                            注册码
                                         </a>
                                         @if ($model-> balance == 0)
                                         @csrf
@@ -68,7 +75,7 @@
                             @endforeach
                         </tbody>
                     </table>
-
+                    <div>{{ $students->links() }}</div>
                 </div>
             </div>
         </div>

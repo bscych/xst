@@ -33,24 +33,25 @@
                     <table class="table table-striped table-bordered">
                         <thead>
                             <tr>
-                                <th>姓名</th>
-                                <th>日期:{{$date}}</th>
+                                <th class="text-center">姓名</th>
+                                <th colspan="3" class="text-center">日期:{{$date}}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if($student_id===null)
                             @foreach ($schedules as $schedule)                           
                             <tr>
-                                <td>{{$schedule->student->name}} </td>
+                                <td class="text-right">{{$schedule->student->name}} </td>
                                 <td>
                                      <label class="checkbox-inline"><input type="checkbox"  onChange=" submitSchedule({{$schedule->id}}, 'attend', '{{route('schedule.store')}}')"  id="{{'attend'.$schedule->id}}" {{$schedule->attend==1?'checked="checked"':''}} >出勤</label>
-                                    @if($schedule->classmodel->course->has_lunch==1)
-                                    <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'lunch','{{route('schedule.store')}}')" id="{{'lunch'.$schedule->id}}" {{$schedule->lunch==1?'checked="checked"':''}} >午餐</label>
-                                    @endif
-                                    @if( $schedule->classmodel->course->has_dinner==1)
-                                     <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'dinner','{{route('schedule.store')}}')" id="{{'dinner'.$schedule->id}}" {{$schedule->dinner==1?'checked="checked"':''}} >晚餐</label>
-                                    @endif
                                 </td>
+                                 @if($schedule->classmodel->course->has_lunch==1)<td>                                    
+                                    <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'lunch','{{route('schedule.store')}}')" id="{{'lunch'.$schedule->id}}" {{$schedule->lunch==1?'checked="checked"':''}} >午餐</label>
+                                    </td>@endif
+                                 
+                                 @if( $schedule->classmodel->course->has_dinner==1)<td>
+                                    <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'dinner','{{route('schedule.store')}}')" id="{{'dinner'.$schedule->id}}" {{$schedule->dinner==1?'checked="checked"':''}} >晚餐</label>
+                                 </td> @endif
                             </tr>                         
                             @endforeach
                             @else
@@ -64,9 +65,13 @@
                                     <!--parents can not tick kid's attend 
                                     <label class="checkbox-inline"><input type="checkbox"  onChange=" submitSchedule({{$schedule->id}}, 'attend', '{{route('schedule.store')}}')"  id="{{'attend'.$schedule->id}}" {{$schedule->attend==1?'checked="checked"':''}} >出勤</label>
                                     -->
+                                </td>
+                                <td>
                                     @if($schedules->where('student_id',$student_id)->first()->classmodel->course->has_lunch==1)
                                     <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'lunch','{{route('schedule.store')}}')" id="{{'lunch'.$schedule->id}}" {{$schedule->lunch==1?'checked="checked"':''}} >午餐</label>
                                     @endif
+                                </td>
+                                <td>
                                     @if( $schedules->where('student_id',$student_id)->first()->classmodel->course->has_dinner==1)
                                     <label class="checkbox-inline"><input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'dinner','{{route('schedule.store')}}')" id="{{'dinner'.$schedule->id}}" {{$schedule->dinner==1?'checked="checked"':''}} >晚餐</label>
                                     @endif

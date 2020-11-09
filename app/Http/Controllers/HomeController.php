@@ -23,7 +23,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        \Illuminate\Support\Facades\Log::info('HomeController:');
+         $user = session('wechat.oauth_user.default');
+        return view('home')->with('data', session('school_id').$user);
     }
     
 }

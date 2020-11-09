@@ -29,7 +29,7 @@ class StudentPolicy
      * @return mixed
      */
     public function view(User $user, Student $student)
-    {
+    {      
        return true;
     }
 
@@ -40,10 +40,11 @@ class StudentPolicy
      * @return mixed
      */
     public function create(User $user)
-    {
+    {       
        return true;
     }
-
+    
+    
     /**
      * Determine whether the user can update the student.
      *
@@ -53,7 +54,7 @@ class StudentPolicy
      */
     public function update(User $user, Student $student)
     {
-        //
+       return true;
     }
 
     /**
@@ -64,8 +65,8 @@ class StudentPolicy
      * @return mixed
      */
     public function delete(User $user, Student $student)
-    {
-        //
+    {       
+       return true;
     }
 
     /**
@@ -77,7 +78,9 @@ class StudentPolicy
      */
     public function restore(User $user, Student $student)
     {
-        //
+          $id = $user->id;
+        $student_id = $student->id;
+       return true;
     }
 
     /**
@@ -89,6 +92,8 @@ class StudentPolicy
      */
     public function forceDelete(User $user, Student $student)
     {
-        //
+         $id = $user->id;
+        $student_id = $student->id;
+       return true;
     }
 }

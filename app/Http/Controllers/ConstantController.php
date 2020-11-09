@@ -6,11 +6,12 @@ use Illuminate\Http\Request;
 use App\Model\Constant;
 
 class ConstantController extends Controller
-{
+{    
     
     public function __construct() {
         $this->middleware('auth');
         $this->authorizeResource(Constant::class);
+
     }
     
     /**
@@ -20,9 +21,13 @@ class ConstantController extends Controller
      */
     public function index(Request $request)
     {
-//        $this->authorize('viewAny', Constant::class);
-        return view('constant.index')->with('constants',Constant::where('parent_id','=',$request->input('id'))->get())->with('id',$request->input('id'));        
-      
+        $id = $request->input('id');
+        if($id===null){//显示可以用的数据字典
+            $constants = Constant::where('parent_id',$id)->get();
+        }else{//显示各校区自己的值
+            $constants = Constant::where('parent_id',$id)->where('school_id', session()->get('school_id'))->get();
+        }        
+        return view('constant.index')->with('constants',$constants)->with('id',$id);           
     }
 
     /**
@@ -32,7 +37,7 @@ class ConstantController extends Controller
      */
     public function create(Request $request)
     {
-        return view('constant.create')->with('id',$request->input('id'));
+        return view('constant.create')->with('id',(int)$request->input('id'));
     }
 
     /**
@@ -44,8 +49,8 @@ class ConstantController extends Controller
    public function store(Request $request)
     {
          $rules = array(
-            'name' => 'required|string|max:255',
-             'label_name'=>'required'
+           // 'name' => 'required|string|max:255',
+            'label_name'=>'required',
         );
         $validator = validator($request->all(), $rules);
         // process the login
@@ -54,9 +59,14 @@ class ConstantController extends Controller
                             ->withErrors($validator);            
         } else {         
             $constant = new Constant;
-            $constant->name = $request->input('name');
             $constant->parent_id =  $request->input('parent_id');
+            if($constant->parent_id!=44){
+            $constant->name = $request->input('name');
+            }else{
+                 $constant->name = 'school';
+            }
             $constant->label_name = $request->input('label_name');
+            $constant->school_id = session()->get('school_id');
             $constant->save();          
             return redirect('constant?id='.$request->input('parent_id'));
         }

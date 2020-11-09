@@ -60,7 +60,7 @@
                                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
                             </div>
                         </div>
-                        
+                        @if($school_id!=0)
                           <div class="form-group row">
                             <label for="role" class="col-md-4 col-form-label text-md-right">{{ __('权限') }}</label>                          
                             <div class="col-md-6">
@@ -71,6 +71,7 @@
                             </select>
                             </div>
                         </div>
+                        @endif
 
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
