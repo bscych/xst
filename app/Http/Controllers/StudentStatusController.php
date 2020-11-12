@@ -24,8 +24,9 @@ class StudentStatusController extends Controller {
         if ($incomeCategory->name === 'tuoguan_fee') {
             $coure_students = DB::table('course_student')->where([['course_id', '=', $course_id], ['student_id', '=', $student_id]])->get();
             if ($coure_students->isEmpty()) {
-                DB::table('course_student')->insert(['course_id' => $course_id, 'student_id' => $student_id, 'school_id' => session()->get('school_id')]
-                );
+                DB::table('course_student')->insert(['course_id' => $course_id, 'student_id' => $student_id, 'school_id' => session()->get('school_id')]);
+            }else{
+                 DB::table('course_student')->where(['course_id' => $course_id, 'student_id' => $student_id, 'school_id' => session()->get('school_id')])->update(['deleted_at'=>null]);
             }
         }
         //特长课交费

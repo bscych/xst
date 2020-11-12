@@ -14,8 +14,8 @@ class ModifyCoursesTable extends Migration
     public function up()
     {
         Schema::table('courses', function (Blueprint $table) {
-           $table->string('unit')->nullable()->comment('课时的计算单位：节，小时')->change();
-           $table->float('duration',6,2)->nullable()->comment('课程总时长')->change();
+//           $table->string('unit')->nullable()->comment('课时的计算单位：节，小时')->change();
+//           $table->float('duration',6,2)->nullable()->comment('课程总时长')->change();
         });
     }
 

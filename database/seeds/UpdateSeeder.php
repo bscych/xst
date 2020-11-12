@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class UpdateSeeder extends Seeder {
 
@@ -10,107 +11,26 @@ class UpdateSeeder extends Seeder {
      * @return void
      */
     public function run() {
-//        DB::table('schools')->insert(
-//                ['id' => 1, 'name' => '大连小书童教育中心', 'lunch_fee' => 15, 'dinner_fee' => 15, 'snack_fee' => 5, 'threshold' => 3]);
-//        DB::table('schools')->insert(
-//                ['id' => 0, 'name' => '普瑞教育']);
-//        DB::table('schools')->where('id', 2)->update(['id' => 0]);
-//        $this->updateConstant();
-//        $this->insertConstants();
-//        $this->updateCourse();
-//        $this->updateClass();
-//        $this->updateCourseStudent();
-//        $this->updateEnroll();
-//        $this->updateIncome();
-//        $this->updateMenu();
-//        $this->updateSpecialDate();
-//        $this->updateHomework();
-//        $this->insertIntoUser_has_role_in_school();
-//        $this->insertSchool_Student();
-//        $this->updateSpend();
-//        $this->updatUser_has_role_in_school();
-//        $this->insertSchool_Student();
-//        $this->insertSchedule();
-//        $this->insertConstant_School();
-//        $this->updateStudent_school();
-//        $this->updateMenuItems();
-    }
-    
-    private function insertConstant_School() {
-        $schools = DB::table('students')->select('school')->distinct()->get();
-        foreach ($schools as $school){
-            DB::table('constants')->insert(['parent_id' => 44, 'name' => 'school','label_name'=>$school->school,'school_id'=>1,'created_at'=> now()] );
-        }
-    }
-    
-      private function updateStudent_school() {
-         DB::table('students')->where('school', '橡树学校')->update(['school' => App\Model\Constant::where('label_name','橡树学校')->first()->id]);
-         DB::table('students')->where('school', '普罗旺斯一期幼儿园')->update(['school' => App\Model\Constant::where('label_name','普罗旺斯一期幼儿园')->first()->id]);
-         DB::table('students')->where('school', '普罗旺斯二期幼儿园')->update(['school' => App\Model\Constant::where('label_name','普罗旺斯二期幼儿园')->first()->id]);
-         DB::table('students')->where('school', '高新园区中心小学')->update(['school' => App\Model\Constant::where('label_name','高新园区中心小学')->first()->id]);
-         DB::table('students')->where('school', '普罗旺斯小学')->update(['school' => App\Model\Constant::where('label_name','普罗旺斯小学')->first()->id]); //data has  beeen inserted
+        $this->updateConstant();
+        $this->updateCourse();
+        $this->updateCourseStudent();
+        $this->updateEnroll();
+        $this->updateIncome();
+        $this->updateMenu();
+        $this->updateSpecialDate();
+        $this->updateHomework();
+        $this->updateSpend();
+        $this->updatUser_has_role_in_school();
+        $this->updateStudent_school();
+        $this->updateMenuItems();
     }
 
-    private function insertSchedule() {
-        $schedules = DB::table('schedule_student')->join('schedules','schedules.id','schedule_student.schedule_id')->select('schedules.classmodel_id', 'schedule_student.student_id', 'schedules.date', 'schedule_student.attended', 'schedule_student.lunch', 'schedule_student.dinner')->get();
-        $data = collect();
-        foreach ($schedules as $schedule) {
-            $d = collect();
-            $d->put('classmodel_id', $schedule->classmodel_id);
-            $d->put('student_id', $schedule->student_id);
-            $d->put('date', $schedule->date);
-            $d->put('attend', $schedule->attended);
-            $d->put('lunch', $schedule->lunch);
-            $d->put('dinner', $schedule->dinner);
-            $data->push($d);
-        }
-          DB::table('schedules')->delete();
-          DB::table('schedules')->insert($data->toArray());
-    }
-
-    private function insertSchool_Student() {
-        $data = collect();
-        foreach (\App\Model\Student::all() as $student) {
-            $d = collect();
-            $d->put('school_id', 1);
-            $d->put('student_id', $student->id);
-            $data->push($d);
-        }
-        DB::table('school_student')->insert($data->toArray());
-    }
-
-    private function insertIntoUser_has_role_in_school() {
-        $user_has_roles = DB::table('model_has_roles')->get();
-        $data = collect();
-        foreach ($user_has_roles as $user_has_role) {
-            $d = collect();
-            $d->put('constant_id', $this->findConstant_id($user_has_role->role_id));
-            $d->put('user_id', $user_has_role->model_id);
-            $d->put('school_id', 1);
-            $data->push($d);
-        }
-        DB::table('user_has_role_in_school')->insert($data->toArray());
-    }
-
-    private function findConstant_id($role_id) {
-        if ($role_id === 1) {//admin,headmaster
-            return App\Model\Constant::where('name','headmaster')->first()->id;
-        }
-        if ($role_id === 2) {//teacher
-            return App\Model\Constant::where('name','teacher')->first()->id;
-        }
-        if ($role_id === 3) {//superAdmin
-            return App\Model\Constant::where('name','admin')->first()->id;
-        }
-        if ($role_id === 4) {//supervisor
-            return App\Model\Constant::where('name','supervisor')->first()->id;
-        }
-        if ($role_id === 5) {//parent
-            return App\Model\Constant::where('name','parent')->first()->id;
-        }
-        if ($role_id === 6) {//cook
-            return App\Model\Constant::where('name','cook')->first()->id;
-        }
+    private function updateStudent_school() {
+        DB::table('students')->where('constant_school_id', '橡树学校')->update(['constant_school_id' => App\Model\Constant::where('label_name', '橡树学校')->first()->id]);
+        DB::table('students')->where('constant_school_id', '普罗旺斯一期幼儿园')->update(['constant_school_id' => App\Model\Constant::where('label_name', '普罗旺斯一期幼儿园')->first()->id]);
+        DB::table('students')->where('constant_school_id', '普罗旺斯二期幼儿园')->update(['constant_school_id' => App\Model\Constant::where('label_name', '普罗旺斯二期幼儿园')->first()->id]);
+        DB::table('students')->where('constant_school_id', '高新园区中心小学')->update(['constant_school_id' => App\Model\Constant::where('label_name', '高新园区中心小学')->first()->id]);
+        DB::table('students')->where('constant_school_id', '普罗旺斯小学')->update(['constant_school_id' => App\Model\Constant::where('label_name', '普罗旺斯小学')->first()->id]); //data has  beeen inserted
     }
 
     private function updatUser_has_role_in_school() {
@@ -139,51 +59,25 @@ class UpdateSeeder extends Seeder {
 
     private function updateCourse() {
         DB::table('courses')->where('school_id', 0)->update(['school_id' => 1]);
-       foreach(\App\Model\Course::all() as $course){
-           if($course->name->contains('托管') or ($course->name->contains('幼小'))){
-               
-           }else{
-             DB::table('courses')->update(['is_speciality_course'=>1]);
-           }
-       }
-    }
-    
-     private function updateClass() {
-        foreach(App\Model\Classmodel::all() as $clas){
-            $days = collect();
-            foreach(json_decode($clas->which_days) as $day){
-                 $dayArr = ['day'=>$day,'time'=>['start_at'=>null,'end_at'=>null]]; 
-                 $days->push($dayArr);
-             }
-             $clas->which_days = $days->toJson();
-             $clas->save();
-        }    
-    }
-    
-      private function updateSpecialDate() {
-        DB::table('specialdates')->where('school_id', 0)->update(['school_id' => 1]);
-    }
-     private function updateHomework() {
-        DB::table('homeworks')->where('school_id', 0)->update(['school_id' => 1]);
-    }
-     private function updateMenuItems() {
-        DB::table('menuitems')->where('school_id', 0)->update(['school_id' => 1]);
+        foreach (\App\Model\Course::all() as $course) {
+            if (Str::contains($course->name, '托管') or Str::contains($course->name, '幼小')) {
+                DB::table('courses')->update(['is_speciality_course' => 0]);
+            } else {
+                DB::table('courses')->update(['is_speciality_course' => 1]);
+            }
+        }
     }
 
-    private function insertConstants() {
-         DB::table('constants')->where('id', 46)
-                ->update(['parent_id' => 5,'name' => 'admin', 'label_name' => '管理员']);
-        DB::table('constants')->insert([
-//            ['parent_id' => 5, 'name' => 'admin', 'label_name' => ' 管理员'], //replace school to constant
-            ['parent_id' => 5, 'name' => 'headmaster', 'label_name' => ' 校长'],
-            ['parent_id' => 5, 'name' => 'teacher', 'label_name' => ' 老师'],
-            ['parent_id' => 5, 'name' => 'supervisor', 'label_name' => ' 教学主管'],
-            ['parent_id' => 5, 'name' => 'parent', 'label_name' => ' 父母'],
-            ['parent_id' => 5, 'name' => 'cook', 'label_name' => ' 厨房'],
-            ['parent_id' => 5, 'name' => 'student', 'label_name' => ' 学员'],
-            ['parent_id' => 4, 'name' => 'another', 'label_name' => ' 其他'],
-            ['parent_id' => 4, 'name' => 'rental', 'label_name' => ' 房租']
-        ]);
+    private function updateSpecialDate() {
+        DB::table('specialdates')->where('school_id', 0)->update(['school_id' => 1]);
+    }
+
+    private function updateHomework() {
+        DB::table('homeworks')->where('school_id', 0)->update(['school_id' => 1]);
+    }
+
+    private function updateMenuItems() {
+        DB::table('menuitems')->where('school_id', 0)->update(['school_id' => 1]);
     }
 
     private function updateConstant() {
@@ -228,9 +122,6 @@ class UpdateSeeder extends Seeder {
                 ->update(['name' => 'transportation_fee', 'label_name' => '车费']);
         DB::table('constants')->where('id', 43)
                 ->update(['name' => 'account_balance', 'label_name' => '学生账户余额']);
-        
-        
     }
-    
 
 }

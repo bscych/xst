@@ -36,10 +36,42 @@ class ScheduleController extends Controller {
         $classmodel_id = session('classmodel_id');
         $this->autoBookMeal($classmodel_id,$date); //auto book meals
         $class = \App\Model\Classmodel::find($classmodel_id); //class will always be found whoever request. 
-        $schedules = $this->lazyInitSchedules($class, $date);
-        return view('schedule.create', ['schedules' => $schedules, 'date' => $date, 'student_id' => $student_id]);
+//        $schedules = $this->lazyInitSchedules($class, $date);
+        $schedules = $this->getMealBookingsByClass($date, $class);
+        return view('schedule.create', ['schedules' => $schedules, 'date' => $date,'class'=>$class, 'student_id' => $student_id,'school_id'=> session('school_id')]);
     }
 
+    private function getMealBookingsByClass($date,$class) {   
+     $students = $class->students;        
+     $mealbookings = \App\Model\Mealbooking::where([['school_id',session('school_id')],['date',$date]])->get();
+     $attendances = \App\Model\Attendance::where([['school_id',session('school_id')],['date',$date],['class_id',$class->id]])->get(); 
+     $data = collect();     
+     foreach($students as $student){
+         $schedule = new Schedule;
+         $schedule->student = $student;  
+         $schedule->date = $date;
+         $schedule->attend = $attendances->where('student_id',$student->id)->first()===null?0:$attendances->where('student_id',$student->id)->first()->attend;
+         $meal = $mealbookings->where('student_id',$student->id)->first();        
+         $schedule->lunch = $meal===null?0:$meal->lunch;
+         $schedule->dinner = $meal===null?0:$meal->dinner;
+        $data->push($schedule);
+     }     
+       return $data;
+    }
+     private function getMealBookingsByStudentId($date,$student_id) {   
+     $student = \App\Model\Student::find($student_id);       
+     $mealbookings = \App\Model\Mealbooking::where([['school_id',session('school_id')],['date',$date]])->get();
+//     $attendances = \App\Model\Attendance::where([['school_id',session('school_id')],['date',$date],['class_id',$class->id]])->get();    
+         $schedule = new Schedule;
+         $schedule->student = $student;  
+         $schedule->date = $date;
+//         $schedule->attend = $attendances->where('student_id',$student->id)->first()===null?0:$attendances->where('student_id',$student->id)->first()->attend;
+         $meal = $mealbookings->where('student_id',$student->id)->first();        
+         $schedule->lunch = $meal===null?0:$meal->lunch;
+         $schedule->dinner = $meal===null?0:$meal->dinner;   
+       return $schedule;
+    }
+    
     /*
      * to init schedules by class
      * 1. if class is null, means the request from a parent and her(his) kid does not belong to a class,which provide meals.
@@ -84,7 +116,8 @@ class ScheduleController extends Controller {
         $classes = $student->classmodels;
         $sortedClasses = $classes->sortByDesc('id');
         foreach ($sortedClasses as $class) {
-            if ($class->course->is_speciality_course === '0') {
+            $course = $class->course;
+            if ($course->has_lunch === '1' or $course->has_dinner==='1') {
                 session()->put('classmodel_id', $class->id); //find the class and save the class id to session.
                 return $class;
             }
@@ -124,27 +157,60 @@ class ScheduleController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
-        $schedule_id = $request->input('schedule_id');
-        $field = $request->input('field');
-        $value = $request->input('value') == 'true' ? 1 : 0;
-        $schedule = Schedule::find($schedule_id);
-        if ($field === 'attend' || $schedule->classmodel->course->is_speciality_course === 1) {
-            $class_student = DB::table('course_student')->where([['school_id', session('school_id')], ['student_id', $schedule->student_id], ['classmodel_id', $schedule->classmodel_id]])->get()->first();
+    public function store(Request $request) {   
+        $field = $request->input('field');   
+        if ($field === 'attend') {
+            $this->processAttendance();
+        }else{
+            $this->processMealbooking();
+        }        
+    }
+    
+    private function processMealbooking() {
+        $student_id = request('student_id');
+        $school_id = request('school_id');
+        $date = request('date');
+         $field = request('field');
+        $value = request('value') == 'true' ? 1 : 0; 
+        $mealbooking = \App\Model\Mealbooking::where([['school_id',$school_id], ['student_id',$student_id], ['date', $date]])->first();
+        if($mealbooking===null){
+            $mealbooking = new \App\Model\Mealbooking;
+            $mealbooking->school_id = $school_id;
+            $mealbooking->student_id = $student_id;
+            $mealbooking->date = $date;           
+        }
+        $mealbooking->$field = $value;       
+        $mealbooking->save();
+    }
+    
+    private function processAttendance() {
+        $student_id = request('student_id');
+        $school_id = request('school_id');
+        $date = request('date');
+        $claz = \App\Model\Classmodel::find(request('class_id'));      
+        $value = request('value') == 'true' ? 1 : 0;     
+         if($claz->course->is_speciality_course === 1){
+                 $class_student = DB::table('course_student')->where([['school_id',$school_id], ['student_id',$student_id], ['classmodel_id', $claz->id]])->get()->first();
             $how_many_left = $class_student->how_many_left;
-            if ($value > 0) {
-                //如果值為1 則剩餘次數上-1
-                $how_many_left--;
-            } else {
-                //如果值為0 則剩餘次數上+1
-                $how_many_left++;
+            if ($value > 0) {                
+                $how_many_left--;//如果值為1 則剩餘次數上-1
+            } else {              
+                $how_many_left++;  //如果值為0 則剩餘次數上+1
             }
             DB::table('course_student')
                     ->where('id', $class_student->id)
                     ->update(['how_many_left' => $how_many_left]);
-        }
-        $schedule->$field = $value;
-        $schedule->save();
+            }           
+            $attendance = \App\Model\Attendance::where([['school_id',$school_id],['class_id',$claz->id],['student_id',$student_id],['date',$date]])->first();
+           if($attendance===null){
+               $attendance = new \App\Model\Attendance;
+               $attendance->school_id = $school_id;
+               $attendance->class_id = $claz->id;
+               $attendance->student_id = $student_id;
+               $attendance->date = $date;              
+           }
+            $attendance->attend = $value; 
+            $attendance->save();
     }
 
 public function setAutoBookMeal(Request $request) {
@@ -214,27 +280,22 @@ public function setAutoBookMeal(Request $request) {
         $student = \App\Model\Student::find($request->input('student_id'));
         if ($student != null) {
             session()->put('student_id', $student->id);
-        }
-        $class = \App\Model\Classmodel::find($request->input('classmodel_id')); //get student's attending class
-        if ($class != null) {
-            session()->put('classmodel_id', $class->id);
-        }
+        }   
         $returnData = collect();
-        $data = $this->formCalendarList($class);
+        $data = $this->formCalendarList(null);
         foreach ($data as $date) {
             $dDate = data_get($date, config()->get('constants.DATE_STRING_KEY'));
-            $schedules = $this->lazyInitSchedules($class, $dDate);
-            $schedule = $schedules->where('student_id', session('student_id'))->first();
+            $schedule = $this->getMealBookingsByStudentId($date, session('student_id'));          
             $dateColl = collect($date);
             $dateColl->put(config()->get('constants.SCHEDULE_STRING_KEY'), $schedule);
             $menu = \App\Model\Menu::where('which_day', $dDate)->where('school_id', session()->get('school_id'))->first();
             $dateColl->put(config()->get('constants.MENU_STRING_KEY'), $menu);
-            $dateColl->put(config()->get('constants.CAN_DISPLAY_STRING_KEY'), $this->canDisplay($dDate, $class));
+            $dateColl->put(config()->get('constants.CAN_DISPLAY_STRING_KEY'), $this->canBookMeal($dDate, $student->id));
             $dateColl->put(config()->get('constants.CAN_EDIT_STRING_KEY'), $this->canEditByDateTime($dDate));
             $returnData->push($dateColl);
         }
-        $autoBookMeal = DB::table('auto_book_meal_students')->where('school_id', session('school_id'))->where('student_id', session('student_id'))->where('class_id', session('classmodel_id'))->first();
-        return view('schedule.create_parent', ['schedules' => $returnData, 'student' => $student, 'class' => $class,'auto_book_meal'=>$autoBookMeal]);
+        $autoBookMeal = DB::table('auto_book_meal_students')->where('school_id', session('school_id'))->where('student_id', session('student_id'))->first();
+        return view('schedule.create_parent', ['schedules' => $returnData, 'student' => $student,'class'=> $this->getClassmodelByStudent($student) ,'auto_book_meal'=>$autoBookMeal,'school_id'=> session('school_id')]);
     }
 
     public function getCalendarList(Request $request) {
@@ -255,10 +316,15 @@ public function setAutoBookMeal(Request $request) {
 
     private function formCalendarList($class) {
         $data = collect();
-        if ($class == null) {
+        if ($class == null) {//class is null then it is from parent's request.
+             for ($i = 0; $i < 7; $i++) {
+                $date = now()->addDays($i - (now()->dayOfWeek))->format('Y-m-d');
+                $dateArray = Arr::add(Arr::add([], config()->get('constants.DATE_STRING_KEY'), $date), config()->get('constants.CAN_DISPLAY_STRING_KEY'), $this->canBookMeal($date, session('student_id')));
+                $data->push($dateArray);
+            }            
             return $data;
         }
-        if ($class->course->is_speciality_course === 1) {
+        if ($class->course->is_speciality_course === 1) {//特长课签到，只显示当天的打卡日期
             foreach (json_decode($class->which_days) as $day) {
                 if (now()->dayOfWeek === data_get($day, 'day')) {
                     $dateArray = Arr::add(Arr::add([], config()->get('constants.DATE_STRING_KEY'), now()->format('Y-m-d')), config()->get('constants.SUBMITTABLE_STRING_KEY'), $this->canDisplay(now()->format('Y-m-d'), $class));
@@ -266,7 +332,7 @@ public function setAutoBookMeal(Request $request) {
                 }
             }
         } else {
-            for ($i = 0; $i < 7; $i++) {
+            for ($i = 0; $i < 7; $i++) {//平日能订餐的课程
                 $date = now()->addDays($i - (now()->dayOfWeek))->format('Y-m-d');
                 $dateArray = Arr::add(Arr::add([], config()->get('constants.DATE_STRING_KEY'), $date), config()->get('constants.SUBMITTABLE_STRING_KEY'), $this->canDisplay($date, $class));
                 $data->push($dateArray);
@@ -322,7 +388,21 @@ public function setAutoBookMeal(Request $request) {
                     }
         }
     }
+    
+    /*
+     * whether display 
+     */
 
+    private function canBookMeal($date,$student_id) {
+       $student = \App\Model\Student::find($student_id);
+       $classmodels = $student->classmodels;
+       foreach($classmodels as $class){
+           if($this->canDisplay($date, $class)===true){
+               return true;
+           }
+       }
+       return false;
+    }
     private function canEditByDateTime($date) {
         $currentDate = date('Y-m-d', time());
         //比当天晚的餐，可以

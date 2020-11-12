@@ -20,7 +20,7 @@ class MenuController extends Controller {
      */
     public function index() {
 
-        return view('menu.index')->with('menus', Menu::orderBy('created_at', 'desc')->where('school_id', session()->get('school_id'))->take(7)->get());
+        return view('menu.index')->with('menus', Menu::orderBy('which_day', 'desc')->where('school_id', session()->get('school_id'))->take(7)->get());
     }
 
     function getMenuByDateMeal($which_day, $meal_id) {

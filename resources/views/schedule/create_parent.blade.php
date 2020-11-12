@@ -3,23 +3,26 @@
 @section('script')
 @parent
 <script>
-    function submitSchedule(schedule_id, field, url) {
+  function submitSchedule(school_id,class_id,date_str,student_id, field, url) {
     axios({
     method: 'post',
             url: url,
             data: {
-            schedule_id: schedule_id,
+                    school_id:school_id,
+                    class_id:class_id,
+                    student_id: student_id,
+                    date:date_str,
                     field: field,
-                    value: $('#' + field + schedule_id).prop('checked')
+                    value: $('#' + field + student_id).prop('checked')
             }});
     }
-    function submitAutoBookMeal(student_id, class_id,which_meal,component_id,url) {
+    
+    function submitAutoBookMeal(student_id,which_meal,component_id,url) {
     axios({
     method: 'post',
             url: url,
             data: {
-                student_id: student_id,
-                class_id:class_id,
+                student_id: student_id,               
                 which_meal:which_meal,
                 auto_book_meal_singal: $('#'+component_id).prop('checked'),                  
             }});
@@ -78,9 +81,9 @@
                                 <td class="text-center"> 
                                     <label class="checkbox-inline">
                                        @if(data_get($sched,config('constants.CAN_EDIT_STRING_KEY')))<!--whether user can edit booking record-->
-                                        <input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'lunch','{{route('schedule.store')}}')" id="{{'lunch'.$schedule->id}}" {{$schedule->lunch==1?'checked="checked"':''}} >午餐
+                                       <input type="checkbox" id="{{'lunch'.$student->id}}" onChange="submitSchedule({{$school_id}},{{$class->id}},'{{data_get($sched,config('constants.DATE_STRING_KEY'))}}',{{$student->id}}, 'lunch', '{{route('schedule.store')}}')" {{$schedule->lunch==1?'checked="checked"':''}} >午餐
                                        @else
-                                       <input type="checkbox"  disabled {{$schedule->lunch==1?'checked="checked"':''}} >午餐
+                                       <input type="checkbox"  disabled {{$schedule->lunch=='1'?'checked="checked"':''}} >午餐
                                        @endif
                                     </label>
                                 </td>
@@ -98,9 +101,9 @@
                                  <td>                                   
                                     <label class="checkbox-inline">
                                          @if(data_get($sched,config('constants.CAN_EDIT_STRING_KEY')))<!--whether user can edit booking record-->
-                                        <input type="checkbox" onChange="submitSchedule({{$schedule->id}}, 'dinner','{{route('schedule.store')}}')" id="{{'dinner'.$schedule->id}}" {{$schedule->dinner==1?'checked="checked"':''}} >晚餐
+                                         <input type="checkbox" id="{{'dinner'.$student->id}}" onChange="submitSchedule({{$school_id}},{{$class->id}},'{{data_get($sched,config('constants.DATE_STRING_KEY'))}}',{{$student->id}}, 'dinner', '{{route('schedule.store')}}')" {{$schedule->dinner==1?'checked="checked"':''}} >晚餐
                                         @else
-                                        <input type="checkbox"  {{$schedule->dinner==1?'checked="checked"':''}} disabled>晚餐
+                                        <input type="checkbox"  {{$schedule->dinner=='1'?'checked="checked"':''}} disabled>晚餐
                                         @endif
                                     </label>
                                 </td>
@@ -146,7 +149,7 @@
                 @if($course->has_lunch)    <td> <div class="input-group mb-3">
                           <div class="input-group-prepend">
                               <div class="input-group-text">
-                                  <input type="checkbox" id="auto_book_lunch" onchange="submitAutoBookMeal({{$student->id}},{{$class->id}},'lunch','auto_book_lunch',{{route('schedule.autoBookMeal')}})" {{$lunch_on?'checked="checked"':''}}>
+                                  <input type="checkbox" id="auto_book_lunch" onchange="submitAutoBookMeal({{$student->id}},'lunch','auto_book_lunch',{{route('schedule.autoBookMeal')}})" {{$lunch_on?'checked="checked"':''}}>
                               </div>
                           </div>
                           <label class="form-control" >自动订午餐 </label>

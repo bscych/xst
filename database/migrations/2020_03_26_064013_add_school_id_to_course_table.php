@@ -14,11 +14,9 @@ class AddSchoolIdToCourseTable extends Migration
     public function up()
     {
         Schema::table('courses', function (Blueprint $table) {
-            $table->unsignedBigInteger('school_id')->comment('学校ID');
-            $table->unsignedBigInteger('created_by')->comment('创建者ID');
-//            $table->char('is_speciality_course',1)->comment('是否是特长课，1：是，0：不是')->default(0);
+           $table->dropColumn('start_date');
+           $table->dropColumn('end_date');
             $table->dropColumn('snack_fee');
-            $table->renameColumn('course_category_id','is_speciality_course')->comment('是否是特长课，1：是，0：不是')->default(0);
             $table->dropColumn('teacher_id');
             $table->dropColumn('classroom_id');
             $table->dropColumn('which_day_1');
@@ -27,6 +25,10 @@ class AddSchoolIdToCourseTable extends Migration
             $table->dropColumn('which_day_2');
             $table->dropColumn('block2_start_time');
             $table->dropColumn('block2_end_time');
+            $table->unsignedBigInteger('school_id')->comment('学校ID');
+            $table->unsignedBigInteger('created_by')->comment('创建者ID');            
+            $table->renameColumn('course_category_id','is_speciality_course')->comment('是否是特长课，1：是，0：不是')->default(0);
+           
         });
     }
 

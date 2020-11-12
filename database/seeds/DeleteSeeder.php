@@ -20,6 +20,16 @@ class DeleteSeeder extends Seeder
          Schema::dropIfExists('roles');
          Schema::dropIfExists('schedule_student');
          Schema::dropIfExists('teacher');
+          Schema::dropIfExists('schedules');
+         $this->deleteCourse();
+         $this->deleteClassmodel();
+    }
+    private function deleteCourse() {
+        DB::table('courses')->where('deleted_at', '<>', null)->delete();
+    }
+    
+     private function deleteClassmodel() {
+        DB::table('classmodels')->where('deleted_at', '<>', null)->delete();
     }
     
     

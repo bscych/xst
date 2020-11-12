@@ -35,13 +35,10 @@ class ParentController extends Controller {
                 return $this->kidList($user->myKids);
             } else {
                 $student = $student_id != null ? \App\Model\Student::find($student_id) : \App\Model\Student::find($user->myKids->first()->id);
-                $claz = $this->getTGCourseByStudent($student);
-                if ($claz->count() === 1) {
-                    return redirect(route('schedule.parentBookMeals', ['student_id' => $student->id, 'classmodel_id' => $claz->first()->id]));
-                } else if ($claz->count() === 0) {
-                    return view('parent.can_not_book_meal')->with('student', $student);
+                if ($this->canStudentBookmeal($student)) {
+                    return redirect(route('schedule.parentBookMeals', ['student_id' => $student->id]));
                 } else {
-                    return view('parent.kidsCourseList')->with('classmodels', $claz)->with('student_id', $student->id);
+                    return view('parent.can_not_book_meal')->with('student', $student);
                 }
             }
         } else {
@@ -102,23 +99,26 @@ class ParentController extends Controller {
     }
 
     /*
-     * get kid's booking histotry by student_id
+     * get kid's booking histotry by student_id, in case of
+     * 1. course's has_lunch,has_dinner,has_snack one of them is 1
+     * 2. classmodel must begin and not closed yet
+     * 3. if the end_date is null then can book meal
      */
 
-    private function getTGCourseByStudent($student) {
-        if (!$this->hasRegistered()) {
-            return $this->toRgister();
-        }
-        $claz = collect();
+    private function canStudentBookmeal($student) {      
         foreach ($student->classmodels as $classmodel) {
             $classStart_date = \Illuminate\Support\Carbon::make($classmodel->start_date)->format('Y-m-d');
-            $ClassClosed_date = \Illuminate\Support\Carbon::make($classmodel->end_date)->format('Y-m-d');
-            //当天学生有托管课，当天大于课程开始时间，并且当天小于课程结束时间，并且课程是托管课程
-            if (now() > $classStart_date and $classmodel->course->is_speciality_course === 0 and $classmodel->deleted_at === null) {
-                $claz->add($classmodel);
+            $ClassClosed_date = $classmodel->end_date==null?now()->format('Y-m-d') : \Illuminate\Support\Carbon::make($classmodel->end_date)->format('Y-m-d');
+            //当天学生有可以订餐的课程，当天大于课程开始时间，并且当天小于课程结束时间        
+            if (now() >= $classStart_date and $this->hasCourseMeal($classmodel) and now() <= $ClassClosed_date) {                
+                    return true;               
             }
         }
-        return $claz;
+        return false;
+    }
+
+    private function hasCourseMeal(\App\Model\Classmodel $class) {     
+        return ($class->course->has_lunch==='1' or $class->course->has_dinner==='1' or $class->course->has_snack==='1');
     }
 
     public function findkid() {
