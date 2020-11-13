@@ -84,14 +84,9 @@ class ParentController extends Controller {
                 return $this->kidList($user->myKids);
             } else {
                 $student = $student_id != null ? \App\Model\Student::find($student_id) : \App\Model\Student::find($user->myKids->first()->id);
-                $claz = $this->getTGCourseByStudent($student);
-                if ($claz->count() === 1) {
-                    return redirect(route('schedule.month_detail', ['student_id' => $student->id, 'classmodel_id' => $claz->first()->id]));
-                } else if ($claz->count() === 0) {
-                    return view('parent.can_not_book_meal')->with('student', $student);
-                } else {
-                    return view('parent.kidsCourseList')->with('classmodels', $claz)->with('student_id', $student->id);
-                }
+                $claz = null;               
+                return redirect(route('schedule.month_detail', ['student_id' => $student->id, 'classmodel_id' => $claz]));
+               
             }
         } else {
             return $this->toRgister();

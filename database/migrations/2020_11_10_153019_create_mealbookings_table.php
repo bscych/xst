@@ -18,11 +18,11 @@ class CreateMealbookingsTable extends Migration
             $table->unsignedInteger('school_id');
             $table->unsignedInteger('student_id');
             $table->date('date')->comment('哪一天');
-            $table->string('morning_snack',1)->default('0')->comment('0：不定餐，1：订餐');
-            $table->string('afternoon_snack',1)->default('0')->comment('0：不定餐，1：订餐');
-            $table->string('breakfast',1)->default('0')->comment('0：不定餐，1：订餐');
-            $table->string('lunch',1)->default('0')->comment('0：不定餐，1：订餐');
-            $table->string('dinner',1)->default('0')->comment('0：不定餐，1：订餐');            
+            $table->integer('morning_snack',1)->default('0')->comment('0：不定餐，1：订餐');
+            $table->integer('afternoon_snack',1)->default('0')->comment('0：不定餐，1：订餐');
+            $table->integer('breakfast',1)->default('0')->comment('0：不定餐，1：订餐');
+            $table->integer('lunch',1)->default('0')->comment('0：不定餐，1：订餐');
+            $table->integer('dinner',1)->default('0')->comment('0：不定餐，1：订餐');            
             $table->timestamps();
             $table->index(['school_id','student_id','date']);
         });

@@ -427,9 +427,10 @@ public function setAutoBookMeal(Request $request) {
             session()->put('student_id', $student_id);
             $student = \App\Model\Student::find($student_id);
         }
-        $classmodel_id = $request->input('classmodel_id');
-        session()->put('classmodel_id', $classmodel_id);
-        $classmodel = \App\Model\Classmodel::find($classmodel_id);
+      $classmodel = \App\Model\Classmodel::find($request->input('classmodel_id'));
+        if ($classmodel != null) {
+            session()->put('classmodel_id', $classmodel->id);           
+        }
         $date = $request->input('date');
 //        $student_id = $request->input('student_id');
         if ($date != null) {
@@ -441,14 +442,6 @@ public function setAutoBookMeal(Request $request) {
     }
 
     private function getScheduleDetailByClassAndDate($classmodel, $student, \Illuminate\Support\Carbon $date) {
-        $students = null;
-        if ($student != null) {
-            $schedules = Schedule::where([['classmodel_id', $classmodel->id], ['student_id', $student->id]])->whereYear('date', $date->year)->whereMonth('date', $date->month)->get();
-            $students = collect($classmodel->students->where('id', $student->id)->all());
-        } else {
-            $schedules = Schedule::where('classmodel_id', $classmodel->id)->whereYear('date', $date->year)->whereMonth('date', $date->month)->get();
-            $students = $classmodel->students;
-        }
         $theDate = \Illuminate\Support\Carbon::create($date->format('Y-m-d'));
         $nextMonth = $theDate->addMonth()->month; //next month
         $theDate->subMonth(); //set the month back to current month
@@ -457,7 +450,17 @@ public function setAutoBookMeal(Request $request) {
             $data->push($theDate->format('Y-m-d'));
             $theDate->addDay();
         }
-        return view('schedule.schedule_month_detail', ['schedules' => $schedules, 'date' => $date, 'students' => $students, 'dates' => $data, 'class' => $classmodel]);
+        $students = null;
+        $attendances=null;
+        if ($student != null) {
+            $schedules = \App\Model\Mealbooking::where([['student_id', $student->id], ['school_id', session('school_id')]])->whereMonth('date', $date->month)->get();
+            $students = collect()->push($student);
+        } else {
+            $attendances = \App\Model\Attendance::where([['school_id', session('school_id')],['class_id',$classmodel->id]])->whereMonth('date',$date->month)->get();
+            $schedules = \App\Model\Mealbooking::where('school_id', session('school_id'))->whereMonth('date',$date->month)->get();
+            $students = $classmodel->students;
+        }
+        return view('schedule.schedule_month_detail', ['schedules' => $schedules, 'date' => $date, 'students' => $students, 'dates' => $data, 'class' => $classmodel,'attendances'=>$attendances]);
     }
 
     function getLastMonthScheduleDetail(Request $request) {

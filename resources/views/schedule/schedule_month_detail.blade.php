@@ -10,15 +10,20 @@
                     @php 
                     $str = null;
                     if($students->count()===1){
-                    $str = $date->year.'年'.$date->month.'月'.$students->first()->name.'的餐费、出勤统计表';
+                        $str = $date->year.'年'.$date->month.'月'.$students->first()->name.'的餐费统计表';
                     }else{
-                    $str = $date->year.'年'.$date->month.'月'.$class->name.'的统计报表';
+                        $str = $date->year.'年'.$date->month.'月'.$class->name.'的统计报表';
+                    }   
+                    $col_count = 0;
+                    if($class!=null){
+                        $col_count=1 ;
                     }
-                    $col_count = 1;
-                    if($class->course->has_lunch){$col_count++;}
-                    if($class->course->has_dinner){$col_count++;}
+                    $has_lunch = $schedules->where('lunch','1')->count()>0;
+                    $has_dinner = $schedules->where('dinner',1)->count()>0;
+                    if($has_lunch){$col_count++;}
+                    if($has_dinner){$col_count++;}
                     @endphp
-                    <div class="text-center">{{$str}}</div>
+                    <div class="text-center">{{$str}} </div>
                     <div>
                         @if(now()->month>$date->month && now()->year>=$date->year)
                         <a href="{{route('schedule.next_month_detail',['date'=>$date->format('Y-m-d')])}}">下个月报表</a>
@@ -29,7 +34,6 @@
                 <div class="card-body">
                     <table class="table table-striped table-bordered">
                         <thead>
-
                             <tr>
                                 <th rowspan="2"class="text-center align-middle"><small>日期</small></th>
                                 @foreach($students as $student)
@@ -37,10 +41,10 @@
                                 @endforeach
                             </tr>
                             <tr>
-                                @foreach($students as $student)
-                                <th class="text-center"><small>出勤</small></th>
-                                @if($class->course->has_lunch) <th class="text-center"><small>午餐</small></th>@endif
-                                @if($class->course->has_dinner)<th class="text-center"><small>晚餐</small></th>@endif
+                                @foreach($students as $student)  
+                                @if($class!=null)<th class="text-center"><small>出勤</small></th> @endif
+                                @if($has_lunch) <th class="text-center"><small>午餐</small></th>@endif
+                                @if($has_dinner)<th class="text-center"><small>晚餐</small></th>@endif
                                 @endforeach
                             </tr>
                         </thead>
@@ -48,26 +52,28 @@
                             @foreach($dates as $whichday)
                             @php 
                             $hasSchedule = $schedules->where('date',$whichday)->count()>0;  
-                            $totalAttend = $schedules->where('date',$whichday)->where('attend',1)->sum('attend');
-                            $totalLunch = $schedules->where('date',$whichday)->where('lunch',1)->sum('lunch');
-                            $totalDinner = $schedules->where('date',$whichday)->where('dinner',1)->sum('dinner');
-                            $hasData = ($totalAttend+$totalLunch+$totalDinner)>0;
+                            $totalLunch = $schedules->where('date',$whichday)->where('lunch','1')->sum('lunch');
+                            $totalDinner = $schedules->where('date',$whichday)->where('dinner','1')->sum('dinner');
+                            $hasData = ($totalLunch+$totalDinner)>0;
                             @endphp
                             @if($hasSchedule && $hasData)
                             <tr>
                                 <td class="text-center">{{$whichday}}</td>
                                 @foreach($students as $student)
                                 @php 
-                                $schedule = $schedules->where('student_id','=',$student->id)->where('date','=',$whichday)->first();                                     
+                                $schedule = $schedules->where('student_id',$student->id)->where('date',$whichday)->first();                                
                                 @endphp
                                 @if ($schedule!=null)
-                                <td class="text-center">{{$schedule->attend==0?'':'√'}}</td>
-                                @if($class->course->has_lunch)<td class="text-center">{{$schedule->lunch==0?'':'√'}}</td>@endif
-                                @if($class->course->has_dinner)<td class="text-center">{{$schedule->dinner==0?'':'√'}}</td>@endif
+                                @if($class!=null)
+                                  
+                                <td class="text-center">√</td>
+                                @endif
+                                @if($has_lunch)<td class="text-center">{{$schedule->lunch==0?'':'√'}}</td>@endif
+                                @if($has_dinner)<td class="text-center">{{$schedule->dinner==0?'':'√'}}</td>@endif
                                 @else
                                 <td class="text-center"></td>
-                                @if($class->course->has_lunch)<td class="text-center"></td>@endif
-                                @if($class->course->has_dinner)<td class="text-center"></td>@endif
+                                @if($has_lunch)<td class="text-center"></td>@endif
+                                @if($has_dinner)<td class="text-center"></td>@endif
                                 @endif
 
                                 @endforeach
@@ -83,33 +89,34 @@
                                 $totalLunch = $schedules->where('student_id',$student->id)->where('lunch',1)->count();
                                 $totalDinner = $schedules->where('student_id',$student->id)->where('dinner',1)->count();
                                 @endphp
-                                <td class="text-center">出勤{{$schedules->where('student_id','=',$student->id)->where('attend','=',1)->count()}}<small>天</small></td>
-                                @if($class->course->has_lunch)<td class="text-center">午餐{{$totalLunch}}<small> 餐</small></td>@endif
-                                @if($class->course->has_dinner)<td class="text-center">晚餐{{$totalDinner}}<small> 餐</small></td>@endif
+                                @if($class!=null)
+                                @php $totalAttend = $attendances->where('student_id',$student->id)->count(); @endphp
+                                <td class="text-center">出勤{{$totalAttend}}<small> 天</small></td>
+                                @endif
+                                @if($has_lunch)<td class="text-center">午餐{{$totalLunch}}<small> 餐</small></td>@endif
+                                @if($has_dinner)<td class="text-center">晚餐{{$totalDinner}}<small> 餐</small></td>@endif
                                 @endforeach
 
                             </tr>
-                            @if($class->course->is_speciality_course.''==='0')
+                           
                             <tr>
                                 <td class="text-center align-middle" rowspan="2"><small>费用总计</small></td>
                                 @foreach($students as $student)
                                 @php
-                                $totalAttend = $schedules->where('student_id',$student->id)->where('attend',1)->count();
+                              
                                 $totalLunch = $schedules->where('student_id',$student->id)->where('lunch',1)->count();
                                 $totalDinner = $schedules->where('student_id',$student->id)->where('dinner',1)->count();
-                                $snack_fee = $class->course->school->snack_fee;
-                                $lunch_fee = $class->course->school->lunch_fee;
-                                $dinner_fee = $class->course->school->dinner_fee;
+                                $snack_fee = App\Model\School::find(session('school_id'))->snack_fee;
+                                $lunch_fee = App\Model\School::find(session('school_id'))->lunch_fee;
+                                $dinner_fee = App\Model\School::find(session('school_id'))->dinner_fee;
                                 @endphp
-                                <td colspan="{{$col_count}}" class="text-center">
-                                    @php $total_snack_fee = $class->course->has_snack?$totalAttend*$snack_fee:0 @endphp
-                                    @if($class->course->has_snack)<span>{{'间点费：'.$total_snack_fee}}</span><br>@endif
-                                    @if($class->course->has_lunch)<span>{{'午餐费：'.$totalLunch*$lunch_fee}}</span><br>@endif
-                                    @if($class->course->has_dinner)<span>{{'晚餐费：'.$totalDinner*$dinner_fee}}</span><br>@endif
-                                    <span>{{'  合计：'.($totalDinner*$dinner_fee + $totalLunch*$lunch_fee + $total_snack_fee)}}<span></td>
+                                <td colspan="{{$col_count}}" class="text-center">                                    
+                                    @if($has_lunch)<span>{{'午餐费：'.$totalLunch*$lunch_fee}}</span><br>@endif
+                                    @if($has_dinner)<span>{{'晚餐费：'.$totalDinner*$dinner_fee}}</span><br>@endif
+                                    <span>{{'  合计：'.($totalDinner*$dinner_fee + $totalLunch*$lunch_fee)}}<span></td>
                                             @endforeach
                             </tr>
-                            @endif
+                          
                                             </tbody>
                                             </table>
                                             <br>
@@ -136,7 +143,9 @@
                                                             </div>
                                                             <div class="modal-body">
                                                                 <input type="date" name="date" class="form-control">
-                                                                <input type="hidden" name="class_id" value="{{$class->id}}">
+                                                              @if($class!=null)
+                                                              <input type="hidden" name="class_id" value="{{$class->id}}">
+                                                              @endif
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <a href="#" class="btn btn-default" data-dismiss="modal">取消</a>
